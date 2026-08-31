@@ -107,6 +107,14 @@ async function importScenario(zipContent) {
             });
         }
 
+        // Import sound effects (missing file just means an older scenario predating this feature)
+        try {
+            const soundEffectsData = await zipContent.file("soundeffects.json").async("string");
+            soundEffects = JSON.parse(soundEffectsData).map(effect => ({ ...effect, audio: null }));
+        } catch {
+            soundEffects = [];
+        }
+
         // Process images from the 'images' folder
         const imagesFolder = zipContent.folder("images");
         if (imagesFolder) {
@@ -135,25 +143,39 @@ async function importScenario(zipContent) {
             }
         }
 
+        // Process ambient/effect audio from the 'sounds' folder
+        const soundsFolder = zipContent.folder("sounds");
+        if (soundsFolder) {
+            for (const filePath of Object.keys(zipContent.files)) {
+                if (filePath.startsWith("sounds/")) {
+                    const file = zipContent.file(filePath);
+                    if (file) {
+                        const base64Audio = await file.async("base64");
+                        const [type, idWithExtension] = filePath.split("/")[1].split("_");
+                        const id = idWithExtension.split(".")[0];
+                        const audio = `data:audio/mpeg;base64,${base64Audio}`;
+
+                        if (type === "place") {
+                            const place = places.find(p => p.id === id);
+                            if (place) place.ambientSound = audio;
+                        } else if (type === "effect") {
+                            const effect = soundEffects.find(e => e.id === id);
+                            if (effect) effect.audio = audio;
+                        }
+                    }
+                }
+            }
+        }
+
         // Log result in console
         console.log("Import completed:", { npcs, objects, places, timeline });
 
-        // Update UI with newly imported data
-        loadMetadata();
-        renderNPCListRight();
-        renderdivObjectListRight();
-        renderdivplaceListRight();
-        renderTimeline();
-        renderdivEventListRight();
-        populateLocationSelect();
-        updateTimeDisplay(currentIndex);
-
-        // Set default place
-        const defaultPlace = places.find(place => place.default === true) || places[0];
-        locationSelect.value = defaultPlace.id;
-        locationChanged();
-        renderdivInventoryListRight();
-        enableDragAndDropTabs();
+        // Update every part of the UI with the newly imported data, and
+        // immediately persist it so it becomes the new autosaved scenario.
+        refreshAllScenarioUI();
+        if (typeof saveScenarioToDB === "function") {
+            saveScenarioToDB();
+        }
 
         // Success notification
         showNotification({

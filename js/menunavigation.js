@@ -1,5 +1,6 @@
 // Menu button references
 const btnScenario = document.getElementById("btnScenario");
+const btnCockpit = document.getElementById("btnCockpit");
 const btnNPCs = document.getElementById("btnNPCs");
 const btnObjects = document.getElementById("btnObjects");
 const btnWorld = document.getElementById("btnWorld");
@@ -10,6 +11,7 @@ const btnEvents = document.getElementById("btnEvents");
 // Collect all container btns for toggling active
 const allContainerBtn = [
     btnScenario,
+    btnCockpit,
     btnNPCs,
     btnObjects,
     btnWorld,
@@ -19,6 +21,7 @@ const allContainerBtn = [
 ];
 
 // Main content containers
+const divCockpit = document.getElementById("divCockpit");
 const divNPCEditor = document.getElementById("divNPCEditor");
 const divObjectEditor = document.getElementById("divObjectEditor");
 const divPlaceEditor = document.getElementById("divPlaceEditor");
@@ -28,6 +31,7 @@ const divEventEditor = document.getElementById("divEventEditor");
 
 // Collect all containers for toggling visibility
 const allContainer = [
+    divCockpit,
     divNPCEditor,
     divObjectEditor,
     divPlaceEditor,
@@ -56,6 +60,18 @@ const allTabButtons = document.querySelectorAll("#infoTabs .tab-button");
 const tabContents = document.querySelectorAll("#tabContents .tab-content");
 
 
+
+/**
+ * Navigates to the GM Cockpit (session overview dashboard).
+ */
+btnCockpit.addEventListener("click", () => {
+    const exeptBtns = [tabBtnSelected];
+    editScenarioEnabled = false;
+    switchMenu(divCockpit, btnCockpit, exeptBtns);
+    if (typeof renderCockpit === "function") {
+        renderCockpit();
+    }
+});
 
 /**
  * Navigates to the Timeline Editor and re-renders the timeline.

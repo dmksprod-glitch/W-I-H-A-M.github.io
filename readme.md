@@ -49,6 +49,15 @@
 8. **Support for Rulesets**  
    \- Show Attributes based on the Ruleset this Adventure is made for
 
+9. **GM Cockpit**  
+   \- A live session dashboard: story progress, who's where, an event log, upcoming events, and pinned plot notes.
+
+10. **Ambient Sound & Soundboard**  
+   \- Upload an MP3 ambience per location that crossfades on scene changes, plus a soundboard of one-shot effects.
+
+11. **Local Autosave**  
+   \- Your scenario is continuously saved in the browser (IndexedDB), so it's still there on your next visit without exporting. ZIP import/export still work and remain the way to back up or share a scenario. "New Scenario" in the sidebar clears the local save and starts fresh; clearing your browser's site data also removes it.
+
 Currently Supported Rulesets are:
 - How To Be A Hero (HTBAH)
 
@@ -101,10 +110,14 @@ scenario.zip
 ├── places.json      # List of locations with grid size and background information
 ├── timeline.json    # Chronological timeline entries
 ├── events.json      # List of events with conditions and triggers
-└── images/          # Folder containing all images used in the scenario
-    ├── npc_<id>.png  # Images for NPCs
-    ├── object_<id>.png # Images for objects
-    └── place_<id>.png  # Background images for places
+├── soundeffects.json # List of soundboard effects (id, name)
+├── images/          # Folder containing all images used in the scenario
+│   ├── npc_<id>.png  # Images for NPCs
+│   ├── object_<id>.png # Images for objects
+│   └── place_<id>.png  # Background images for places
+└── sounds/          # Folder containing all audio used in the scenario
+    ├── place_<id>.mp3   # Ambient track for a place
+    └── effect_<id>.mp3  # Soundboard effect
 ```
 
 ## 🎮 Usage

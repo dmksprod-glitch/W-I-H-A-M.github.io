@@ -86,6 +86,9 @@ function locationChanged() {
     updateAndCheckEvents();
     myPlace = places.find(p => p.id === selectedPlaceId);
     displaySelectedDetails(myPlace);
+    if (typeof crossfadeAmbientForPlace === "function") {
+        crossfadeAmbientForPlace(selectedPlaceId);
+    }
 }
 
 /**
@@ -103,6 +106,9 @@ function populateLocationSelect() {
     if (places.length > 0) {
         locationSelect.value = places[0].id;
         loadSelectedPlace(places[0].id);
+        if (typeof crossfadeAmbientForPlace === "function") {
+            crossfadeAmbientForPlace(places[0].id);
+        }
     }
 }
 
@@ -147,8 +153,10 @@ function updateObjectList(placeId) {
 }
 
 // Initial actions on page load
+// Note: populateLocationSelect() is triggered by db.js after it has tried to
+// restore an autosaved scenario, so the dropdown reflects the right data
+// from the very first render instead of a brief empty flash.
 loadLanguages();
-populateLocationSelect();
 setInterval(updateRealTime, 1000);
 setInterval(updatePageTimer, 1000);
 

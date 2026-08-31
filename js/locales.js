@@ -81,6 +81,12 @@ function loadLanguage(langCode, languages) {
     }
     translations = languages[langCode];
     updateTexts();
+    if (typeof renderCockpit === "function") {
+        renderCockpit();
+    }
+    if (typeof renderDbStatus === "function") {
+        renderDbStatus();
+    }
 }
 
 /**

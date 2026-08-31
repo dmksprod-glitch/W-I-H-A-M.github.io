@@ -47,13 +47,22 @@ function generateObjectsJSON() {
     }));
 }
 
-// Returns an array of place definitions, adjusting background image paths for export
+// Returns an array of place definitions, adjusting background image and ambient sound paths for export
 function generatePlacesJSON() {
     const placesReturn = places.map(place => ({
         ...place,
-        background: place.background ? `images/place_${place.id}.png` : null
+        background: place.background ? `images/place_${place.id}.png` : null,
+        ambientSound: place.ambientSound ? `sounds/place_${place.id}.mp3` : null
     }));
     return placesReturn;
+}
+
+// Returns an array of sound effect definitions (audio itself goes into the sounds/ folder)
+function generateSoundEffectsJSON() {
+    return soundEffects.map(effect => ({
+        id: effect.id,
+        name: effect.name
+    }));
 }
 
 // Creates a ZIP archive containing all scenario data and triggers the download
@@ -73,6 +82,9 @@ function exportScenario() {
     zip.file("timeline.json", JSON.stringify(timelineData, null, 2));
 
     zip.file("events.json", JSON.stringify(events, null, 2));
+
+    const soundEffectsData = generateSoundEffectsJSON();
+    zip.file("soundeffects.json", JSON.stringify(soundEffectsData, null, 2));
 
     const metaObj = { ...meta };
     zip.file("meta.json", JSON.stringify(metaObj, null, 2));
@@ -97,6 +109,22 @@ function exportScenario() {
         if (place.background && !place.background.includes("assets/default_object.png")) {
             const base64Data = place.background.split(",")[1];
             imagesFolder.file(`place_${place.id}.png`, base64Data, { base64: true });
+        }
+    });
+
+    const soundsFolder = zip.folder("sounds");
+
+    places.forEach(place => {
+        if (place.ambientSound) {
+            const base64Data = place.ambientSound.split(",")[1];
+            soundsFolder.file(`place_${place.id}.mp3`, base64Data, { base64: true });
+        }
+    });
+
+    soundEffects.forEach(effect => {
+        if (effect.audio) {
+            const base64Data = effect.audio.split(",")[1];
+            soundsFolder.file(`effect_${effect.id}.mp3`, base64Data, { base64: true });
         }
     });
 

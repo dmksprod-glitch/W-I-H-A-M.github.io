@@ -295,6 +295,9 @@ function checkAndNotifyEvents(events, context) {
     events.forEach(event => {
         if (evaluateEventConditions(event, context)) {
             addNotification(`${event.name}<br>${event.description?.replace(/\n/g, "<br>")}`)
+            if (typeof registerCockpitEvent === "function") {
+                registerCockpitEvent(event);
+            }
         }
     });
 }
@@ -319,6 +322,10 @@ function updateAndCheckEvents() {
         };
 
         checkAndNotifyEvents(events, context);
+    }
+
+    if (typeof renderCockpit === "function") {
+        renderCockpit();
     }
 }
 

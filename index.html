@@ -111,6 +111,12 @@
           </button>
         </li>
         <li>
+          <button id="btnCockpit">
+            <span id="sidebarMenuBtnIcon" class="mdi mdi-view-dashboard-outline"></span>
+            <span id="sidebarMenuBtnTxt" class="collapsed" data-i18n="cockpit">Cockpit</span>
+          </button>
+        </li>
+        <li>
           <button id="btnNPCs">
             <span id="sidebarMenuBtnIcon" class="mdi mdi-account"></span>
             <span id="sidebarMenuBtnTxt" class="collapsed" data-i18n="npcEditor">NPCs</span>
@@ -161,6 +167,12 @@
       <!-- Additional scenario management tools at the bottom of the sidebar -->
       <ul id="sidebarMenu" style="margin-top: auto;">
         <li>
+          <button id="btnNewScenario">
+            <span id="sidebarMenuBtnIcon" class="mdi mdi-file-plus-outline"></span>
+            <span id="sidebarMenuBtnTxt" class="collapsed" data-i18n="newScenario">Neues Szenario</span>
+          </button>
+        </li>
+        <li>
           <button id="btnImportScenario">
             <span id="sidebarMenuBtnIcon" class="mdi mdi-folder-open"></span>
             <span id="sidebarMenuBtnTxt" class="collapsed" data-i18n="import">Szenario importieren</span>
@@ -180,12 +192,123 @@
           </button>
         </li>
       </ul>
+      <div id="dbStatusFooter">
+        <span id="dbStatusIcon" class="mdi mdi-content-save-check-outline"></span>
+        <span id="sidebarMenuBtnTxt" class="collapsed"><span id="dbStatusText"></span></span>
+      </div>
     </nav>
 
     <!-- Main content area -->
     <main id="mainContent">
       <div id="mapContainer">
         <div id="mapGrid"></div>
+      </div>
+
+      <!-- Cockpit / GM Overview Section -->
+      <div id="divCockpit" style="display: none;">
+        <div id="cockpitIntro">
+          <h2 data-i18n="cockpitPageTitle">Spielleiter-Cockpit</h2>
+          <p data-i18n="cockpitIntro">Alles Wichtige zum aktuellen Ort und Zeitpunkt auf einen Blick.</p>
+        </div>
+
+        <div id="cockpitTimelineCard">
+          <div class="cockpit-eyebrow" data-i18n="cockpitTimelineLabel">Handlungsverlauf</div>
+          <div id="cockpitTimelineTrack"></div>
+        </div>
+
+        <div id="cockpitGrid">
+          <div id="cockpitColMain">
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="cockpitNowTitle">Jetzt am Tisch</h3>
+                <span class="cockpit-chip" id="cockpitNowTimeChip"></span>
+              </div>
+              <div id="cockpitNowPlaceName" class="cockpit-now-place"></div>
+              <div id="cockpitNowPlaceDesc" class="cockpit-now-desc"></div>
+              <div class="cockpit-now-sections">
+                <div>
+                  <div class="cockpit-group-label" data-i18n="npcsHere">NPCs hier</div>
+                  <div id="cockpitNpcList"></div>
+                </div>
+                <div>
+                  <div class="cockpit-group-label" data-i18n="objectsHere">Objekte hier</div>
+                  <div id="cockpitObjList"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="cockpitSoundTitle">Sound</h3>
+                <div class="cockpit-sound-master">
+                  <button type="button" id="cockpitAmbientMuteBtn" class="cockpit-icon-btn"
+                    title="Ambiente stummschalten">
+                    <span class="mdi mdi-volume-high"></span>
+                  </button>
+                  <input type="range" id="cockpitAmbientVolume" min="0" max="100" value="60" />
+                </div>
+              </div>
+              <div id="cockpitAmbientStatus" class="cockpit-ambient-status"></div>
+
+              <div class="cockpit-sound-divider"></div>
+
+              <div class="cockpit-panel-head">
+                <h4 data-i18n="cockpitSfxTitle">Soundeffekte</h4>
+                <button type="button" id="cockpitStopSfx" class="cockpit-chip-btn"
+                  data-i18n="cockpitStopSfx">Stoppen</button>
+              </div>
+              <div id="cockpitSfxGrid" class="cockpit-sfx-grid"></div>
+              <div class="cockpit-sfx-add">
+                <input type="text" id="cockpitSfxName" placeholder="Name des Effekts" />
+                <button type="button" id="btnCockpitSfxUpload" data-i18n="cockpitAddSfx">+ Effekt
+                  hinzufügen</button>
+                <input type="file" id="inputCockpitSfxFile" accept="audio/mpeg,audio/mp3,audio/*"
+                  style="display: none;" />
+              </div>
+            </section>
+
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="cockpitLogTitle">Ereignis-Log</h3>
+                <span class="cockpit-chip" id="cockpitLogCount"></span>
+              </div>
+              <ul id="cockpitLogList" class="cockpit-log-list"></ul>
+            </section>
+
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="cockpitUpcomingTitle">Bevorstehende Events</h3>
+              </div>
+              <div id="cockpitUpcomingList" class="cockpit-upcoming-list"></div>
+            </section>
+
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="cockpitNotesTitle">SL-Notizen zu diesem Zeitpunkt</h3>
+              </div>
+              <textarea id="cockpitNotes"
+                placeholder="Was ist hier gerade wichtig? Was haben die Spieler übersehen?"></textarea>
+              <div class="cockpit-hint" data-i18n="cockpitNotesHint">Nur für diese Sitzung gespeichert, nicht Teil
+                des Exports.</div>
+            </section>
+          </div>
+
+          <div id="cockpitColSide">
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="plot">Handlung</h3>
+              </div>
+              <div id="cockpitPlotText" class="cockpit-plot-text"></div>
+            </section>
+
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="cockpitWhereisTitle">Wo ist wer</h3>
+              </div>
+              <div id="cockpitWhereisList" class="cockpit-whereis-list"></div>
+            </section>
+          </div>
+        </div>
       </div>
 
       <div id="divEditScenario" style="display: none;">
@@ -368,6 +491,16 @@
           <input type="file" id="inputPlaceBackgroundFile" accept="image/*" style="display: none;" />
           <img id="imgPlaceImagePreview" src="" alt="Preview"
             style="width: 100px; height: 100px; object-fit: cover; display: none;" />
+        </div>
+        <div class="editor-field">
+          <label data-i18n="ambientSound" for="placeAmbientSound">Ambiente (MP3):</label>
+          <button data-i18n="upload" id="btnPlaceAmbientUpload" type="button">Hochladen</button>
+          <input type="file" id="inputPlaceAmbientFile" accept="audio/mpeg,audio/mp3,audio/*"
+            style="display: none;" />
+          <button data-i18n="removeAmbient" id="btnPlaceAmbientRemove" type="button"
+            style="display: none;">Entfernen</button>
+          <span id="placeAmbientFileName" class="ambient-filename"></span>
+          <audio id="placeAmbientPreviewPlayer" controls style="display: none;"></audio>
         </div>
         <div class="editor-field">
           <label data-i18n="gridRow" for="placeGridSizeRows">Grid-Zeilen:</label>
@@ -559,6 +692,8 @@
   <script src="js/npcEditor.js"></script>
   <script src="js/objectEditor.js"></script>
   <script src="js/eventEditor.js"></script>
+  <script src="js/cockpit.js"></script>
+  <script src="js/audio.js"></script>
   <script src="js/grid.js"></script>
   <script src="js/placeEditor.js"></script>
   <script src="js/timelineEditor.js"></script>
@@ -569,6 +704,7 @@
   <script src="js/import.js"></script>
   <script src="js/notification.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/db.js"></script>
 </body>
 
 </html>

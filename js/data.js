@@ -34,6 +34,7 @@ let objects = [];
 let places = [];
 let timeline = [];
 let events = [];
+let soundEffects = [];
 
 /**
  * Generates a new unique ID by scanning all existing IDs across npcs, objects,
@@ -46,7 +47,8 @@ function generateID() {
     ...places.map(place => parseInt(place.id, 10)),
     ...timeline.map(tim => parseInt(tim.id, 10)),
     ...unsavedTimeline.map(utim => parseInt(utim.id, 10)),
-    ...events.map(utim => parseInt(utim.id, 10))
+    ...events.map(utim => parseInt(utim.id, 10)),
+    ...soundEffects.map(sfx => parseInt(sfx.id, 10))
   ].filter(id => !isNaN(id));
 
   const nextID = allIDs.length > 0 ? Math.max(...allIDs) + 1 : 1;
