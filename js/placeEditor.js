@@ -4,11 +4,14 @@
 const btnPlaceBackgroundUpload = document.getElementById("btnPlaceBackgroundUpload");
 const inputPlaceBackgroundFile = document.getElementById("inputPlaceBackgroundFile");
 const imgPlaceImagePreview = document.getElementById("imgPlaceImagePreview");
-const btnPlaceAmbientUpload = document.getElementById("btnPlaceAmbientUpload");
-const inputPlaceAmbientFile = document.getElementById("inputPlaceAmbientFile");
-const btnPlaceAmbientRemove = document.getElementById("btnPlaceAmbientRemove");
-const placeAmbientFileName = document.getElementById("placeAmbientFileName");
-const placeAmbientPreviewPlayer = document.getElementById("placeAmbientPreviewPlayer");
+const btnPlaceAmbientTrackUpload = document.getElementById("btnPlaceAmbientTrackUpload");
+const inputPlaceAmbientTrackFile = document.getElementById("inputPlaceAmbientTrackFile");
+const placeAmbientTrackNameInput = document.getElementById("placeAmbientTrackName");
+const placeAmbientTrackList = document.getElementById("placeAmbientTrackList");
+const btnPlaceSfxUpload = document.getElementById("btnPlaceSfxUpload");
+const inputPlaceSfxFile = document.getElementById("inputPlaceSfxFile");
+const placeSfxNameInput = document.getElementById("placeSfxName");
+const placeStopSfx = document.getElementById("placeStopSfx");
 const btnPlaceSave = document.getElementById("btnPlaceSave");
 const btnPlaceDelete = document.getElementById("btnPlaceDelete");
 const btnNewPlace = document.getElementById("btnNewPlace");
@@ -67,37 +70,49 @@ inputPlaceBackgroundFile.addEventListener("change", (event) => {
 });
 
 /**
- * Opens the file dialog for uploading a place ambient sound track.
+ * Opens the file dialog for uploading an additional ambient sound track.
  */
-btnPlaceAmbientUpload.addEventListener("click", () => {
-  inputPlaceAmbientFile.click();
+btnPlaceAmbientTrackUpload.addEventListener("click", () => {
+  inputPlaceAmbientTrackFile.click();
 });
 
 /**
- * Reads the selected ambient sound file, converts it to base64,
- * and attaches it directly to the place being edited.
+ * Reads the selected ambient sound file, converts it to base64, and adds it
+ * as a new track on the place being edited (becoming the active track if it
+ * is the first one).
  */
-inputPlaceAmbientFile.addEventListener("change", (event) => {
+inputPlaceAmbientTrackFile.addEventListener("change", (event) => {
   const file = event.target.files && event.target.files[0];
   if (!file || !currentEditedPlace) return;
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    currentEditedPlace.ambientSound = e.target.result;
-    currentEditedPlace.ambientSoundName = file.name;
-    showPlaceAmbientPreview(currentEditedPlace);
-  };
-  reader.readAsDataURL(file);
+  addAmbientTrackFromFile(currentEditedPlace, file, placeAmbientTrackNameInput.value);
+  placeAmbientTrackNameInput.value = "";
+  event.target.value = "";
 });
 
 /**
- * Removes the ambient sound track from the place being edited.
+ * Opens the file dialog for uploading a new sound effect to this place's
+ * soundboard.
  */
-btnPlaceAmbientRemove.addEventListener("click", () => {
-  if (!currentEditedPlace) return;
-  currentEditedPlace.ambientSound = null;
-  currentEditedPlace.ambientSoundName = null;
-  showPlaceAmbientPreview(currentEditedPlace);
+btnPlaceSfxUpload.addEventListener("click", () => {
+  inputPlaceSfxFile.click();
+});
+
+/**
+ * Reads the selected sound effect file and adds it to the place being
+ * edited.
+ */
+inputPlaceSfxFile.addEventListener("change", (event) => {
+  const file = event.target.files && event.target.files[0];
+  if (!file || !currentEditedPlace) return;
+
+  addSoundEffectFromFile(currentEditedPlace, file, placeSfxNameInput.value);
+  placeSfxNameInput.value = "";
+  event.target.value = "";
+});
+
+placeStopSfx.addEventListener("click", () => {
+  stopAllSoundEffects();
 });
 
 /**
@@ -110,8 +125,9 @@ btnNewPlace.addEventListener("click", () => {
     name: "N/N",
     description: "",
     background: "assets/default_place.png",
-    ambientSound: null,
-    ambientSoundName: null,
+    ambientTracks: [],
+    activeAmbientTrackId: null,
+    soundEffects: [],
     gridSize: { rows: 10, cols: 10 },
     color: getRandomColor(),
     fogOfWar: {
@@ -246,7 +262,10 @@ function loadPlaceIntoEditor(place) {
     imgPlaceImagePreview.src = "";
     imgPlaceImagePreview.style.display = "none";
   }
-  showPlaceAmbientPreview(place);
+  renderPlaceAmbientTracks(place);
+  if (typeof renderPlaceSoundboard === "function") {
+    renderPlaceSoundboard(place);
+  }
   if (typeof sendFogStateToPlayerView === "function") {
     sendFogStateToPlayerView(place);
   }
@@ -321,27 +340,136 @@ function clearPlaceEditorFields() {
     imgPlaceImagePreview.src = "";
     imgPlaceImagePreview.style.display = "none";
   }
-  showPlaceAmbientPreview({ ambientSound: null });
+  if (placeAmbientTrackList) {
+    placeAmbientTrackList.innerHTML = "";
+  }
+  const placeSfxGridEl = document.getElementById("placeSfxGrid");
+  if (placeSfxGridEl) {
+    placeSfxGridEl.innerHTML = "";
+  }
   if (placeFogEnabled) {
     placeFogEnabled.checked = false;
   }
 }
 
 /**
- * Shows or hides the ambient sound preview player and filename
- * for the given place, based on whether an ambient track is set.
+ * Renders the list of ambient tracks for the given place: one row per
+ * track with a radio button to pick the active one, an inline player, and a
+ * delete button.
  */
-function showPlaceAmbientPreview(place) {
-  if (place && place.ambientSound) {
-    placeAmbientFileName.textContent = place.ambientSoundName || "";
-    placeAmbientPreviewPlayer.src = place.ambientSound;
-    placeAmbientPreviewPlayer.style.display = "block";
-    btnPlaceAmbientRemove.style.display = "inline-block";
-  } else {
-    placeAmbientFileName.textContent = "";
-    placeAmbientPreviewPlayer.src = "";
-    placeAmbientPreviewPlayer.style.display = "none";
-    btnPlaceAmbientRemove.style.display = "none";
+function renderPlaceAmbientTracks(place) {
+  if (!placeAmbientTrackList) return;
+  if (typeof ensurePlaceAmbientMigrated === "function") {
+    ensurePlaceAmbientMigrated(place);
+  } else if (!Array.isArray(place.ambientTracks)) {
+    place.ambientTracks = [];
+  }
+
+  placeAmbientTrackList.innerHTML = "";
+
+  if (!place.ambientTracks.length) {
+    placeAmbientTrackList.innerHTML = `<p class="ambient-empty" data-i18n="ambientTracksEmpty">Noch keine Ambiente-Tracks hochgeladen.</p>`;
+    return;
+  }
+
+  place.ambientTracks.forEach(track => {
+    const row = document.createElement("div");
+    row.className = "ambient-track-row";
+
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "placeActiveAmbientTrack";
+    radio.checked = track.id === place.activeAmbientTrackId;
+    radio.title = "Als aktiven Track festlegen";
+    radio.addEventListener("change", () => {
+      if (typeof setActiveAmbientTrack === "function") {
+        setActiveAmbientTrack(place.id, track.id);
+      }
+    });
+
+    const name = document.createElement("span");
+    name.className = "ambient-track-name";
+    name.textContent = track.name;
+
+    const player = document.createElement("audio");
+    player.controls = true;
+    player.src = track.audio;
+    player.className = "ambient-track-player";
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "ambient-track-del";
+    del.innerHTML = "&times;";
+    del.title = "Track entfernen";
+    del.addEventListener("click", () => {
+      if (typeof deleteAmbientTrack === "function") {
+        deleteAmbientTrack(place.id, track.id);
+      }
+    });
+
+    row.appendChild(radio);
+    row.appendChild(name);
+    row.appendChild(player);
+    row.appendChild(del);
+    placeAmbientTrackList.appendChild(row);
+  });
+}
+
+/**
+ * Adds a newly uploaded ambient track to the given place, making it the
+ * active track if the place had none yet.
+ */
+function addAmbientTrackFromFile(place, file, name) {
+  if (!file || !place) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    if (typeof ensurePlaceAmbientMigrated === "function") {
+      ensurePlaceAmbientMigrated(place);
+    } else if (!Array.isArray(place.ambientTracks)) {
+      place.ambientTracks = [];
+    }
+
+    const track = {
+      id: generateID(),
+      name: (name && name.trim()) ? name.trim() : file.name.replace(/\.[^/.]+$/, ""),
+      audio: e.target.result
+    };
+    place.ambientTracks.push(track);
+
+    if (!place.activeAmbientTrackId && typeof setActiveAmbientTrack === "function") {
+      setActiveAmbientTrack(place.id, track.id);
+    }
+
+    renderPlaceAmbientTracks(place);
+    if (typeof renderSoundUiSafe === "function") {
+      renderSoundUiSafe();
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+/**
+ * Removes a single ambient track from a place. If it was the active track,
+ * the next remaining track (if any) becomes active.
+ */
+function deleteAmbientTrack(placeId, trackId) {
+  const place = places.find(p => p.id === placeId);
+  if (!place) return;
+
+  place.ambientTracks = place.ambientTracks.filter(t => t.id !== trackId);
+
+  if (place.activeAmbientTrackId === trackId) {
+    const nextTrack = place.ambientTracks[0] || null;
+    if (typeof setActiveAmbientTrack === "function") {
+      setActiveAmbientTrack(placeId, nextTrack ? nextTrack.id : null);
+    } else {
+      place.activeAmbientTrackId = nextTrack ? nextTrack.id : null;
+    }
+  }
+
+  renderPlaceAmbientTracks(place);
+  if (typeof renderSoundUiSafe === "function") {
+    renderSoundUiSafe();
   }
 }
 

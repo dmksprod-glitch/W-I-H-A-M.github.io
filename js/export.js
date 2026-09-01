@@ -47,22 +47,31 @@ function generateObjectsJSON() {
     }));
 }
 
-// Returns an array of place definitions, adjusting background image and ambient sound paths for export
+// Returns an array of place definitions, adjusting background image, ambient
+// track, and sound effect paths for export. Ambient tracks and sound
+// effects are each a place's own list, mirrored here with their audio
+// replaced by a path into the sounds/ folder.
 function generatePlacesJSON() {
-    const placesReturn = places.map(place => ({
-        ...place,
-        background: place.background ? `images/place_${place.id}.png` : null,
-        ambientSound: place.ambientSound ? `sounds/place_${place.id}.mp3` : null
-    }));
+    const placesReturn = places.map(place => {
+        if (typeof ensurePlaceAmbientMigrated === "function") {
+            ensurePlaceAmbientMigrated(place);
+        }
+        return {
+            ...place,
+            background: place.background ? `images/place_${place.id}.png` : null,
+            ambientTracks: (place.ambientTracks || []).map(track => ({
+                id: track.id,
+                name: track.name,
+                audio: `sounds/ambient_${place.id}_${track.id}.mp3`
+            })),
+            soundEffects: (place.soundEffects || []).map(effect => ({
+                id: effect.id,
+                name: effect.name,
+                audio: `sounds/effect_${place.id}_${effect.id}.mp3`
+            }))
+        };
+    });
     return placesReturn;
-}
-
-// Returns an array of sound effect definitions (audio itself goes into the sounds/ folder)
-function generateSoundEffectsJSON() {
-    return soundEffects.map(effect => ({
-        id: effect.id,
-        name: effect.name
-    }));
 }
 
 // Creates a ZIP archive containing all scenario data and triggers the download
@@ -82,9 +91,6 @@ function exportScenario() {
     zip.file("timeline.json", JSON.stringify(timelineData, null, 2));
 
     zip.file("events.json", JSON.stringify(events, null, 2));
-
-    const soundEffectsData = generateSoundEffectsJSON();
-    zip.file("soundeffects.json", JSON.stringify(soundEffectsData, null, 2));
 
     const metaObj = { ...meta };
     zip.file("meta.json", JSON.stringify(metaObj, null, 2));
@@ -115,17 +121,21 @@ function exportScenario() {
     const soundsFolder = zip.folder("sounds");
 
     places.forEach(place => {
-        if (place.ambientSound) {
-            const base64Data = place.ambientSound.split(",")[1];
-            soundsFolder.file(`place_${place.id}.mp3`, base64Data, { base64: true });
+        if (typeof ensurePlaceAmbientMigrated === "function") {
+            ensurePlaceAmbientMigrated(place);
         }
-    });
-
-    soundEffects.forEach(effect => {
-        if (effect.audio) {
-            const base64Data = effect.audio.split(",")[1];
-            soundsFolder.file(`effect_${effect.id}.mp3`, base64Data, { base64: true });
-        }
+        (place.ambientTracks || []).forEach(track => {
+            if (track.audio) {
+                const base64Data = track.audio.split(",")[1];
+                soundsFolder.file(`ambient_${place.id}_${track.id}.mp3`, base64Data, { base64: true });
+            }
+        });
+        (place.soundEffects || []).forEach(effect => {
+            if (effect.audio) {
+                const base64Data = effect.audio.split(",")[1];
+                soundsFolder.file(`effect_${place.id}_${effect.id}.mp3`, base64Data, { base64: true });
+            }
+        });
     });
 
     zip.generateAsync({ type: "blob" }).then(content => {

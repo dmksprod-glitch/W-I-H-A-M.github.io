@@ -76,6 +76,25 @@
       </div>
     </div>
     <div id="headerRight">
+      <div id="headerAmbientControls" title="Ambiente der aktuellen Location">
+        <button type="button" id="headerAmbientMuteBtn" class="cockpit-icon-btn" title="Ambiente stummschalten">
+          <span class="mdi mdi-volume-high"></span>
+        </button>
+        <input type="range" id="headerAmbientVolume" min="0" max="100" value="60" title="Ambiente-Lautstärke" />
+        <select id="headerAmbientTrackSelect" title="Ambiente-Track wählen"></select>
+      </div>
+      <div id="headerSoundboard">
+        <button type="button" id="headerSfxToggle" class="cockpit-icon-btn" title="Soundboard dieses Ortes">
+          <span class="mdi mdi-bullhorn-outline"></span>
+        </button>
+        <div id="headerSfxPanel" class="header-sfx-panel hidden">
+          <div class="header-sfx-panel-head">
+            <span id="headerSfxPlaceName"></span>
+            <button type="button" id="headerStopSfx" class="cockpit-chip-btn" data-i18n="cockpitStopSfx">Stoppen</button>
+          </div>
+          <div id="headerSfxGrid" class="cockpit-sfx-grid"></div>
+        </div>
+      </div>
       <button type="button" class="rules-help-btn" data-rules-topic="" title="How to be a Hero – Regeln nachschlagen">
         <span class="mdi mdi-book-open-page-variant-outline"></span>
         <span data-i18n="rulesHelp">Regeln</span>
@@ -227,15 +246,19 @@
           <div id="cockpitTimelineTrack"></div>
         </div>
 
+        <div id="cockpitPlaceChips" class="cockpit-place-chips"></div>
+
         <div id="cockpitGrid">
           <div id="cockpitColMain">
-            <section class="cockpit-panel">
+            <section class="cockpit-panel cockpit-map-panel">
               <div class="cockpit-panel-head">
-                <h3 data-i18n="cockpitNowTitle">Jetzt am Tisch</h3>
+                <div>
+                  <h3 id="cockpitNowPlaceName" class="cockpit-now-place"></h3>
+                  <p id="cockpitNowPlaceDesc" class="cockpit-now-desc"></p>
+                </div>
                 <span class="cockpit-chip" id="cockpitNowTimeChip"></span>
               </div>
-              <div id="cockpitNowPlaceName" class="cockpit-now-place"></div>
-              <div id="cockpitNowPlaceDesc" class="cockpit-now-desc"></div>
+              <div id="cockpitMapSlot" class="cockpit-map-slot"></div>
               <div class="cockpit-now-sections">
                 <div>
                   <div class="cockpit-group-label" data-i18n="npcsHere">NPCs hier</div>
@@ -245,36 +268,6 @@
                   <div class="cockpit-group-label" data-i18n="objectsHere">Objekte hier</div>
                   <div id="cockpitObjList"></div>
                 </div>
-              </div>
-            </section>
-
-            <section class="cockpit-panel">
-              <div class="cockpit-panel-head">
-                <h3 data-i18n="cockpitSoundTitle">Sound</h3>
-                <div class="cockpit-sound-master">
-                  <button type="button" id="cockpitAmbientMuteBtn" class="cockpit-icon-btn"
-                    title="Ambiente stummschalten">
-                    <span class="mdi mdi-volume-high"></span>
-                  </button>
-                  <input type="range" id="cockpitAmbientVolume" min="0" max="100" value="60" />
-                </div>
-              </div>
-              <div id="cockpitAmbientStatus" class="cockpit-ambient-status"></div>
-
-              <div class="cockpit-sound-divider"></div>
-
-              <div class="cockpit-panel-head">
-                <h4 data-i18n="cockpitSfxTitle">Soundeffekte</h4>
-                <button type="button" id="cockpitStopSfx" class="cockpit-chip-btn"
-                  data-i18n="cockpitStopSfx">Stoppen</button>
-              </div>
-              <div id="cockpitSfxGrid" class="cockpit-sfx-grid"></div>
-              <div class="cockpit-sfx-add">
-                <input type="text" id="cockpitSfxName" placeholder="Name des Effekts" />
-                <button type="button" id="btnCockpitSfxUpload" data-i18n="cockpitAddSfx">+ Effekt
-                  hinzufügen</button>
-                <input type="file" id="inputCockpitSfxFile" accept="audio/mpeg,audio/mp3,audio/*"
-                  style="display: none;" />
               </div>
             </section>
 
@@ -307,9 +300,11 @@
           <div id="cockpitColSide">
             <section class="cockpit-panel">
               <div class="cockpit-panel-head">
-                <h3 data-i18n="plot">Handlung</h3>
+                <h3 data-i18n="cockpitSoundTitle">Sound</h3>
               </div>
-              <div id="cockpitPlotText" class="cockpit-plot-text"></div>
+              <div id="cockpitAmbientStatus" class="cockpit-ambient-status"></div>
+              <div class="cockpit-hint" data-i18n="cockpitSoundHeaderHint">Steuerung &amp; Soundboard: oben im
+                Header.</div>
             </section>
 
             <section class="cockpit-panel">
@@ -318,6 +313,11 @@
               </div>
               <div id="cockpitWhereisList" class="cockpit-whereis-list"></div>
             </section>
+
+            <details class="cockpit-panel cockpit-collapsible">
+              <summary data-i18n="plot">Handlung</summary>
+              <div id="cockpitPlotText" class="cockpit-plot-text"></div>
+            </details>
           </div>
         </div>
       </div>
@@ -516,14 +516,24 @@
             style="width: 100px; height: 100px; object-fit: cover; display: none;" />
         </div>
         <div class="editor-field">
-          <label data-i18n="ambientSound" for="placeAmbientSound">Ambiente (MP3):</label>
-          <button data-i18n="upload" id="btnPlaceAmbientUpload" type="button">Hochladen</button>
-          <input type="file" id="inputPlaceAmbientFile" accept="audio/mpeg,audio/mp3,audio/*"
-            style="display: none;" />
-          <button data-i18n="removeAmbient" id="btnPlaceAmbientRemove" type="button"
-            style="display: none;">Entfernen</button>
-          <span id="placeAmbientFileName" class="ambient-filename"></span>
-          <audio id="placeAmbientPreviewPlayer" controls style="display: none;"></audio>
+          <label data-i18n="ambientTracks">Ambiente-Tracks:</label>
+          <div id="placeAmbientTrackList" class="ambient-track-list"></div>
+          <div class="ambient-track-add">
+            <input type="text" id="placeAmbientTrackName" placeholder="Name des Tracks (optional)" />
+            <button data-i18n="addTrack" id="btnPlaceAmbientTrackUpload" type="button">+ Track hinzufügen</button>
+            <input type="file" id="inputPlaceAmbientTrackFile" accept="audio/mpeg,audio/mp3,audio/*"
+              style="display: none;" />
+          </div>
+        </div>
+        <div class="editor-field">
+          <label data-i18n="cockpitSfxTitle">Soundeffekte:</label>
+          <div id="placeSfxGrid" class="cockpit-sfx-grid"></div>
+          <div class="cockpit-sfx-add">
+            <input type="text" id="placeSfxName" placeholder="Name des Effekts" />
+            <button type="button" id="btnPlaceSfxUpload" data-i18n="cockpitAddSfx">+ Effekt hinzufügen</button>
+            <input type="file" id="inputPlaceSfxFile" accept="audio/mpeg,audio/mp3,audio/*" style="display: none;" />
+            <button type="button" id="placeStopSfx" class="cockpit-chip-btn" data-i18n="cockpitStopSfx">Stoppen</button>
+          </div>
         </div>
         <div class="editor-field">
           <label data-i18n="gridRow" for="placeGridSizeRows">Grid-Zeilen:</label>

@@ -29,13 +29,21 @@ const divTimelineEditor = document.getElementById("divTimelineEditor");
 const divEditScenario = document.getElementById("divEditScenario");
 const divEventEditor = document.getElementById("divEventEditor");
 
+// The map is a single shared element that gets physically moved between the
+// Scenario view (its default slot, first child of #mainContent) and the
+// Cockpit's central map panel - see btnScenario/btnCockpit below. It is
+// deliberately NOT in allContainer: switchMenu hides it by default on every
+// navigation, and whichever of the two handlers is active re-shows it after
+// moving it into place.
+const cockpitMapSlot = document.getElementById("cockpitMapSlot");
+const mainContentEl = document.getElementById("mainContent");
+
 // Collect all containers for toggling visibility
 const allContainer = [
     divCockpit,
     divNPCEditor,
     divObjectEditor,
     divPlaceEditor,
-    mapContainer,
     divTimelineEditor,
     divEditScenario,
     divEventEditor
@@ -65,9 +73,13 @@ const tabContents = document.querySelectorAll("#tabContents .tab-content");
  * Navigates to the GM Cockpit (session overview dashboard).
  */
 btnCockpit.addEventListener("click", () => {
-    const exeptBtns = [tabBtnSelected];
+    const exeptBtns = [tabBtnSelected, tabBtnNPCs, tabBtnObjects, tabBtnInventory];
     editScenarioEnabled = false;
     switchMenu(divCockpit, btnCockpit, exeptBtns);
+    cockpitMapSlot.appendChild(mapContainer);
+    mapContainer.style.display = "block";
+    loadSelectedPlace(locationSelect.value);
+    renderdivInventoryListRight();
     if (typeof renderCockpit === "function") {
         renderCockpit();
     }
@@ -133,6 +145,7 @@ btnEditScenario.addEventListener("click", () => {
 btnScenario.addEventListener("click", () => {
     const exeptBtns = [tabBtnSelected, tabBtnNPCs, tabBtnObjects, tabBtnInventory];
     editScenarioEnabled = false;
+    mainContentEl.prepend(mapContainer);
     switchMenu(mapContainer, btnScenario, exeptBtns);
     loadSelectedPlace(locationSelect.value);
     renderdivInventoryListRight();
@@ -165,6 +178,7 @@ function switchMenu(Container, ContainerBtn, exeptBtns) {
     allContainer.forEach((con) => {
         con.style.display = "none";
     });
+    mapContainer.style.display = "none";
     Container.style.display = "block";
 
     allContainerBtn.forEach((btn) => {

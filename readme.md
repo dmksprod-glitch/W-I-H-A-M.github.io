@@ -50,10 +50,10 @@
    \- Show Attributes based on the Ruleset this Adventure is made for
 
 9. **GM Cockpit**  
-   \- A live session dashboard: story progress, who's where, an event log, upcoming events, and pinned plot notes.
+   \- A live session dashboard built around the map: click through locations, see who's where, an event log, upcoming events, and a collapsible plot summary.
 
-10. **Ambient Sound & Soundboard**  
-   \- Upload an MP3 ambience per location that crossfades on scene changes, plus a soundboard of one-shot effects.
+10. **Ambient Sound & Soundboard (per location)**  
+   \- Upload several MP3 ambience tracks per location and pick which one plays; it crossfades on scene changes. Each location also has its own soundboard of one-shot effects. Both live in the header - reachable from the Cockpit, the regular map view, or anywhere else - and are managed on that location's page in the Location Editor.
 
 11. **Local Autosave**  
    \- Your scenario is continuously saved in the browser (IndexedDB), so it's still there on your next visit without exporting. ZIP import/export still work and remain the way to back up or share a scenario. "New Scenario" in the sidebar clears the local save and starts fresh; clearing your browser's site data also removes it.
@@ -110,15 +110,16 @@ scenario.zip
 ├── places.json      # List of locations with grid size and background information
 ├── timeline.json    # Chronological timeline entries
 ├── events.json      # List of events with conditions and triggers
-├── soundeffects.json # List of soundboard effects (id, name)
 ├── images/          # Folder containing all images used in the scenario
 │   ├── npc_<id>.png  # Images for NPCs
 │   ├── object_<id>.png # Images for objects
 │   └── place_<id>.png  # Background images for places
 └── sounds/          # Folder containing all audio used in the scenario
-    ├── place_<id>.mp3   # Ambient track for a place
-    └── effect_<id>.mp3  # Soundboard effect
+    ├── ambient_<placeId>_<trackId>.mp3  # One of a place's ambient tracks (a place can have several)
+    └── effect_<placeId>_<effectId>.mp3  # One of a place's soundboard effects
 ```
+
+Ambient tracks and sound effects both live on their place in `places.json` (each place has its own `ambientTracks` and `soundEffects` list) - they're not shared globally between locations.
 
 ## 🎮 Usage
 

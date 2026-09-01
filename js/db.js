@@ -30,7 +30,7 @@ function openScenarioDB() {
 async function saveScenarioToDB() {
     try {
         const db = await openScenarioDB();
-        const snapshot = { meta, npcs, objects, places, timeline, events, soundEffects };
+        const snapshot = { meta, npcs, objects, places, timeline, events };
         await new Promise((resolve, reject) => {
             const tx = db.transaction(WIHAM_STORE_NAME, "readwrite");
             tx.objectStore(WIHAM_STORE_NAME).put(snapshot, WIHAM_RECORD_KEY);
@@ -136,7 +136,19 @@ async function initScenarioFromDB() {
             places = saved.places || [];
             timeline = saved.timeline || [];
             events = saved.events || [];
-            soundEffects = saved.soundEffects || [];
+
+            // Sound effects used to be one global list, saved separately.
+            // Reattach any leftovers from an older autosave to the default
+            // place instead of losing them.
+            if (saved.soundEffects && saved.soundEffects.length && places.length) {
+                const defaultPlace = places.find(p => p.default === true) || places[0];
+                if (typeof ensurePlaceAmbientMigrated === "function") {
+                    ensurePlaceAmbientMigrated(defaultPlace);
+                } else if (!Array.isArray(defaultPlace.soundEffects)) {
+                    defaultPlace.soundEffects = [];
+                }
+                defaultPlace.soundEffects.push(...saved.soundEffects);
+            }
         }
     } catch (error) {
         console.error("Could not load autosaved scenario:", error);
@@ -176,7 +188,6 @@ document.getElementById("btnNewScenario").addEventListener("click", async () => 
     places = [];
     timeline = [];
     events = [];
-    soundEffects = [];
 
     await clearScenarioDB();
     location.reload();

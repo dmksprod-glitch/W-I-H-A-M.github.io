@@ -1594,17 +1594,125 @@ button.active {
   flex-wrap: wrap;
 }
 
-.ambient-filename {
-  font-size: 0.8rem;
+/* Ambient track list (Place-Editor) */
+.ambient-empty {
   color: var(--ui-text-muted);
-  margin-left: 8px;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin: 0 0 8px;
 }
 
-#placeAmbientPreviewPlayer {
-  display: block;
-  width: 100%;
-  max-width: 320px;
-  margin-top: 8px;
+.ambient-track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ambient-track-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ui-surface-alt);
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  flex-wrap: wrap;
+}
+
+.ambient-track-name {
+  font-size: 0.85rem;
+  min-width: 100px;
+}
+
+.ambient-track-player {
+  height: 32px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.ambient-track-del {
+  background: transparent;
+  border: none;
+  color: var(--ui-text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  box-shadow: none;
+}
+
+.ambient-track-del:hover {
+  color: var(--negativ-color);
+}
+
+.ambient-track-add {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ambient-track-add input[type="text"] {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Header ambient controls */
+#headerAmbientControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#headerAmbientVolume {
+  width: 80px;
+  accent-color: var(--ui-accent);
+}
+
+#headerAmbientTrackSelect {
+  max-width: 150px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+/* Header soundboard popover */
+#headerSoundboard {
+  position: relative;
+}
+
+.header-sfx-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 280px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #1d2636, #161f30);
+  border: 1px solid var(--ui-border);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  padding: 14px;
+  z-index: 4000;
+}
+
+.header-sfx-panel.hidden {
+  display: none;
+}
+
+.header-sfx-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#headerSfxPlaceName {
+  font-family: "Kanit", "Libre Franklin", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 0.85rem;
+  color: var(--ui-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 /* ============================================================
@@ -1717,6 +1825,35 @@ button.active {
   border-color: var(--ui-accent-strong);
 }
 
+/* Location chips */
+.cockpit-place-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.cockpit-place-chip {
+  background: var(--ui-surface-alt);
+  border: 1px solid var(--ui-border);
+  color: var(--ui-text-muted);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 0.82rem;
+}
+
+.cockpit-place-chip:hover {
+  border-color: var(--ui-border-strong);
+  color: var(--ui-text);
+}
+
+.cockpit-place-chip.active {
+  background: rgba(213, 183, 115, 0.16);
+  border-color: var(--ui-gold);
+  color: var(--ui-gold);
+  font-weight: 600;
+}
+
 /* Dashboard grid */
 #cockpitGrid {
   display: grid;
@@ -1776,6 +1913,60 @@ button.active {
   font-size: 0.85rem;
   font-style: italic;
   margin: 0;
+}
+
+/* Central map panel */
+.cockpit-map-panel .cockpit-panel-head {
+  align-items: flex-start;
+}
+
+.cockpit-map-slot {
+  height: min(52vh, 480px);
+  min-height: 320px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.cockpit-map-slot #mapContainer {
+  border-radius: 14px;
+}
+
+/* Collapsible panels (native <details>/<summary>, e.g. Handlung) */
+details.cockpit-collapsible {
+  padding: 0;
+  overflow: hidden;
+}
+
+details.cockpit-collapsible > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 18px 20px;
+  font-family: "Kanit", "Libre Franklin", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  color: var(--ui-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+details.cockpit-collapsible > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.cockpit-collapsible > summary::after {
+  content: "▾";
+  font-size: 16px;
+  color: var(--ui-text-muted);
+  transition: transform 0.15s ease;
+}
+
+details.cockpit-collapsible[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+details.cockpit-collapsible .cockpit-plot-text {
+  padding: 0 20px 18px;
 }
 
 /* Now panel */
@@ -1979,12 +2170,6 @@ button.active {
 }
 
 /* Sound panel */
-.cockpit-sound-master {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .cockpit-icon-btn {
   width: 32px;
   height: 32px;
@@ -2018,12 +2203,6 @@ button.active {
   font-size: 0.82rem;
   color: var(--ui-text-muted);
   margin-bottom: 4px;
-}
-
-.cockpit-sound-divider {
-  height: 1px;
-  background: var(--ui-border);
-  margin: 14px 0;
 }
 
 .cockpit-chip-btn {

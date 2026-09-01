@@ -1,5 +1,5 @@
 // Defines the cache name, including a version string.
-const CACHE_NAME = "wiham-cache-v6";
+const CACHE_NAME = "wiham-cache-v7";
 
 // Lists the application files to be cached for offline availability.
 const urlsToCache = [
@@ -7,6 +7,7 @@ const urlsToCache = [
     "/index.html",
     "/locales.json",
     "/css/style.css",
+    "/css/rulesHelp.css",
     "/js/main.js",
     "/js/data.js",
     "/js/locales.js",
@@ -23,6 +24,10 @@ const urlsToCache = [
     "/js/export.js",
     "/js/import.js",
     "/js/notification.js",
+    "/js/cockpit.js",
+    "/js/audio.js",
+    "/js/db.js",
+    "/js/htbahRules.js",
     "/assets/logo.png",
     "/assets/favicon.ico",
     "/assets/default_place.png",
@@ -38,7 +43,7 @@ self.addEventListener("install", event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
             return cache.addAll(urlsToCache);
-        })
+        }).then(() => self.skipWaiting())
     );
 });
 
@@ -56,7 +61,7 @@ self.addEventListener("activate", event => {
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim())
     );
 });
 

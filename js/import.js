@@ -107,12 +107,16 @@ async function importScenario(zipContent) {
             });
         }
 
-        // Import sound effects (missing file just means an older scenario predating this feature)
+        // Sound effects used to be one global list (soundeffects.json); they
+        // now live per-place. If this ZIP predates that, keep the legacy
+        // list around so it can be reattached to the default place once
+        // places are loaded, instead of silently losing it.
+        let legacyGlobalEffects = [];
         try {
             const soundEffectsData = await zipContent.file("soundeffects.json").async("string");
-            soundEffects = JSON.parse(soundEffectsData).map(effect => ({ ...effect, audio: null }));
+            legacyGlobalEffects = JSON.parse(soundEffectsData).map(effect => ({ ...effect, audio: null }));
         } catch {
-            soundEffects = [];
+            legacyGlobalEffects = [];
         }
 
         // Process images from the 'images' folder
@@ -143,7 +147,17 @@ async function importScenario(zipContent) {
             }
         }
 
-        // Process ambient/effect audio from the 'sounds' folder
+        // Process ambient/effect audio from the 'sounds' folder:
+        //   ambient_<placeId>_<trackId>.mp3  - one of a place's ambient tracks
+        //   effect_<placeId>_<effectId>.mp3  - one of a place's soundboard effects
+        // Two older, already-shipped formats are also recognized so nothing
+        // gets silently lost on import:
+        //   place_<placeId>.mp3  - a place's single legacy ambient track
+        //                          (ensurePlaceAmbientMigrated upgrades it later)
+        //   effect_<id>.mp3      - a legacy *global* effect (see legacyGlobalEffects
+        //                          above); collected here and reattached to the
+        //                          default place below.
+        const legacyGlobalEffectAudio = {};
         const soundsFolder = zipContent.folder("sounds");
         if (soundsFolder) {
             for (const filePath of Object.keys(zipContent.files)) {
@@ -151,20 +165,50 @@ async function importScenario(zipContent) {
                     const file = zipContent.file(filePath);
                     if (file) {
                         const base64Audio = await file.async("base64");
-                        const [type, idWithExtension] = filePath.split("/")[1].split("_");
-                        const id = idWithExtension.split(".")[0];
+                        const basename = filePath.split("/")[1].replace(/\.[^.]+$/, "");
+                        const parts = basename.split("_");
+                        const type = parts[0];
                         const audio = `data:audio/mpeg;base64,${base64Audio}`;
 
-                        if (type === "place") {
-                            const place = places.find(p => p.id === id);
-                            if (place) place.ambientSound = audio;
-                        } else if (type === "effect") {
-                            const effect = soundEffects.find(e => e.id === id);
+                        if (type === "ambient" && parts.length >= 3) {
+                            const placeId = parts[1];
+                            const trackId = parts.slice(2).join("_");
+                            const place = places.find(p => p.id === placeId);
+                            const track = place?.ambientTracks?.find(t => t.id === trackId);
+                            if (track) track.audio = audio;
+                        } else if (type === "effect" && parts.length >= 3) {
+                            const placeId = parts[1];
+                            const effectId = parts.slice(2).join("_");
+                            const place = places.find(p => p.id === placeId);
+                            const effect = place?.soundEffects?.find(e => e.id === effectId);
                             if (effect) effect.audio = audio;
+                        } else if (type === "effect") {
+                            legacyGlobalEffectAudio[parts[1]] = audio;
+                        } else if (type === "place") {
+                            const placeId = parts[1];
+                            const place = places.find(p => p.id === placeId);
+                            if (place) place.ambientSound = audio;
                         }
                     }
                 }
             }
+        }
+
+        // Reattach any legacy global effects to the default place so they
+        // survive the move to per-place soundboards.
+        if (legacyGlobalEffects.length && places.length) {
+            const defaultPlace = places.find(p => p.default === true) || places[0];
+            if (typeof ensurePlaceAmbientMigrated === "function") {
+                ensurePlaceAmbientMigrated(defaultPlace);
+            } else if (!Array.isArray(defaultPlace.soundEffects)) {
+                defaultPlace.soundEffects = [];
+            }
+            legacyGlobalEffects.forEach(effect => {
+                defaultPlace.soundEffects.push({
+                    ...effect,
+                    audio: legacyGlobalEffectAudio[effect.id] || null
+                });
+            });
         }
 
         // Log result in console

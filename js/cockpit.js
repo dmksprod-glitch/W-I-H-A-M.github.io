@@ -96,13 +96,16 @@ function buildCockpitContext() {
 function renderCockpit() {
     if (!document.getElementById("divCockpit")) return;
     renderCockpitTimeline();
+    renderCockpitPlaceChips();
     renderCockpitNow();
     renderCockpitLog();
     renderCockpitUpcoming();
     renderCockpitWhereis();
     renderCockpitPlot();
     renderCockpitNotes();
-    renderCockpitSoundSafe();
+    if (typeof renderSoundUiSafe === "function") {
+        renderSoundUiSafe();
+    }
 }
 
 /**
@@ -139,6 +142,31 @@ function renderCockpitTimeline() {
         });
 
         track.appendChild(point);
+    });
+}
+
+/**
+ * Renders a row of location chips - one per place - so the GM can jump
+ * straight to any location without leaving the Cockpit. The active place
+ * (the one currently selected in the header) is highlighted.
+ */
+function renderCockpitPlaceChips() {
+    const container = document.getElementById("cockpitPlaceChips");
+    if (!container) return;
+    container.innerHTML = "";
+
+    places.forEach(place => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "cockpit-place-chip";
+        if (place.id === locationSelect.value) chip.classList.add("active");
+        chip.textContent = place.name || "(Unbenannt)";
+        chip.addEventListener("click", () => {
+            if (locationSelect.value === place.id) return;
+            locationSelect.value = place.id;
+            locationChanged();
+        });
+        container.appendChild(chip);
     });
 }
 
