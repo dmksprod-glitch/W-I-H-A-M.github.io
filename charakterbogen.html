@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Libre+Franklin:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/rulesHelp.css">
   <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
@@ -1101,7 +1103,13 @@
   <div class="app">
     <aside class="control-panel">
       <div>
-        <h1>Charakterbogen</h1>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <h1 style="margin-bottom:0;">Charakterbogen</h1>
+          <button type="button" class="rules-help-btn" data-rules-topic="chargen" title="How to be a Hero – Regeln nachschlagen">
+            <span class="mdi mdi-book-open-page-variant-outline"></span>
+            <span>Regeln</span>
+          </button>
+        </div>
         <p style="color:var(--muted); font-size:13px; line-height:1.4;">
           Erstelle einen Charakter für <strong>How to be a Hero</strong>. Alle Werte aktualisieren sich automatisch.
         </p>
@@ -1236,9 +1244,15 @@
       <section class="panel-section">
         <div class="section-heading">
           <h2>Begabungen &amp; Fähigkeiten</h2>
-          <button type="button" class="info-button" data-align="end" aria-label="Hinweis zu Begabungen &amp; Fähigkeiten" data-info="Verteile deine Fähigkeitspunkte auf konkrete Fertigkeiten. Die Begabungen Handeln, Wissen und Soziales ergeben sich aus der Summe der investierten Punkte geteilt durch 10 (kaufmännisch runden).">
-            i
-          </button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="rules-help-btn" data-rules-topic="faehigkeiten" title="How to be a Hero – Regeln nachschlagen">
+              <span class="mdi mdi-book-open-page-variant-outline"></span>
+              <span>Regeln</span>
+            </button>
+            <button type="button" class="info-button" data-align="end" aria-label="Hinweis zu Begabungen &amp; Fähigkeiten" data-info="Verteile deine Fähigkeitspunkte auf konkrete Fertigkeiten. Die Begabungen Handeln, Wissen und Soziales ergeben sich aus der Summe der investierten Punkte geteilt durch 10 (kaufmännisch runden).">
+              i
+            </button>
+          </div>
         </div>
         <div id="editorsContainer"></div>
       </section>
@@ -2821,5 +2835,6 @@ function renderCategoryTable(tbody, abilities, metrics, desiredRowCount) {
       initialize();
     })();
   </script>
+  <script src="js/htbahRules.js"></script>
 </body>
 </html>

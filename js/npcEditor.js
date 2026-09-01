@@ -217,7 +217,7 @@ function updateCategoryTotals(category) {
 
     // Calculate bonus points for the category
     const bonusPoints = calculateBonusPoints(category);
-    const powerBonusPoints = Math.ceil(calculateBonusPoints(category) * 0.1);
+    const powerBonusPoints = Math.round(bonusPoints / 10);
 
     if (bonusPointsDisplay) {
         bonusPointsDisplay.textContent = `+ ${bonusPoints}`;
@@ -325,8 +325,9 @@ function saveNPCFromEditor(npc) {
 }
 
 /**
- * Calculates the bonus points for a category based on the sum of all points.
- * Puts a cap at 30 bonus points, for example.
+ * Calculates the Begabungswert (bonus points) for a category: the sum of all
+ * invested skill points in that category, divided by 10 and rounded to the
+ * nearest whole number (kaufmaennische Rundung), per the HTBAH rulebook.
  */
 function calculateBonusPoints(category) {
     const pointsInputs = document.querySelectorAll(`#category${category} .points`);
@@ -334,11 +335,7 @@ function calculateBonusPoints(category) {
     pointsInputs.forEach((input) => {
         totalPoints += parseInt(input.value, 10) || 0;
     });
-    totalPoints = Math.floor(totalPoints / 10);
-    if (totalPoints > 30) {
-        totalPoints = 30;
-    }
-    return totalPoints;
+    return Math.round(totalPoints / 10);
 }
 
 /**

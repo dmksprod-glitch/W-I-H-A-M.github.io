@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css">
   <!-- MDI Icon Font -->
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/rulesHelp.css">
   <style>
     :root{
       --card-w: 50mm;
@@ -216,7 +217,13 @@
 <body>
   <div class="layout">
     <aside class="panel" id="editor">
-      <h2>Card Editor</h2>
+      <h2 class="section-heading" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        Card Editor
+        <button type="button" class="rules-help-btn" data-rules-topic="schaden" title="How to be a Hero – Schaden & Waffentabelle nachschlagen">
+          <span class="mdi mdi-book-open-page-variant-outline"></span>
+          <span>Regeln</span>
+        </button>
+      </h2>
       <div class="group">
         <label for="artUpload">Artwork upload</label>
         <input type="file" id="artUpload" accept="image/*" />
@@ -2571,5 +2578,6 @@
       if(bwModeToggle) bwModeToggle.checked = bwPrintMode;
     })();
   </script>
+  <script src="js/htbahRules.js"></script>
 </body>
 </html>

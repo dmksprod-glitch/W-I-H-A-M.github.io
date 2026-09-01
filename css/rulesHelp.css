@@ -1,0 +1,232 @@
+/* Shared "How to be a Hero" rules-reference modal, used across index.html,
+   charakterbogen.html and cardcreator.html. Colors are hardcoded (not tied
+   to any single page's CSS variables) so it looks identical everywhere. */
+
+.rules-help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #232f44;
+  border: 1px solid #2f3d55;
+  color: #e5ecff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: "Libre Franklin", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  white-space: nowrap;
+}
+
+.rules-help-btn:hover {
+  border-color: #528bff;
+  color: #7da4ff;
+}
+
+.rules-help-btn .mdi {
+  font-size: 16px;
+}
+
+.htbah-rules-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 10, 18, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  padding: 24px;
+}
+
+.htbah-rules-overlay.hidden {
+  display: none;
+}
+
+.htbah-rules-modal {
+  background: linear-gradient(180deg, #1d2636, #161f30);
+  border: 1px solid #2f3d55;
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  width: min(920px, 100%);
+  max-height: min(720px, 90vh);
+  display: flex;
+  flex-direction: column;
+  color: #e5ecff;
+  font-family: "Libre Franklin", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.htbah-rules-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid #2f3d55;
+  flex: none;
+}
+
+.htbah-rules-head h2 {
+  font-family: "Kanit", "Libre Franklin", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.05rem;
+  margin: 0;
+  letter-spacing: 0.02em;
+  color: #d5b773;
+}
+
+.htbah-rules-close {
+  background: #232f44;
+  border: 1px solid #2f3d55;
+  color: #e5ecff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  flex: none;
+  padding: 0;
+}
+
+.htbah-rules-close:hover {
+  border-color: #528bff;
+  color: #7da4ff;
+}
+
+.htbah-rules-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.htbah-rules-nav {
+  width: 220px;
+  flex: none;
+  border-right: 1px solid #2f3d55;
+  padding: 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.htbah-rules-nav-btn {
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #98a6c8;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.htbah-rules-nav-btn:hover {
+  background: rgba(82, 139, 255, 0.1);
+  color: #e5ecff;
+}
+
+.htbah-rules-nav-btn.active {
+  background: rgba(82, 139, 255, 0.18);
+  border-color: #3b4b66;
+  color: #d5b773;
+  font-weight: 600;
+}
+
+.htbah-rules-content {
+  flex: 1;
+  padding: 20px 26px;
+  overflow-y: auto;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.htbah-rules-content h3 {
+  font-family: "Kanit", "Libre Franklin", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #e5ecff;
+  margin: 0 0 10px;
+}
+
+.htbah-rules-content h4 {
+  color: #7da4ff;
+  margin: 18px 0 6px;
+  font-size: 0.95rem;
+}
+
+.htbah-rules-content p {
+  margin: 0 0 10px;
+  color: #c7d0ea;
+}
+
+.htbah-rules-content ul,
+.htbah-rules-content ol {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  color: #c7d0ea;
+}
+
+.htbah-rules-content li {
+  margin-bottom: 4px;
+}
+
+.htbah-rules-content strong {
+  color: #e5ecff;
+}
+
+.htbah-rules-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0 14px;
+  font-size: 0.85rem;
+}
+
+.htbah-rules-content th,
+.htbah-rules-content td {
+  border: 1px solid #2f3d55;
+  padding: 6px 10px;
+  text-align: left;
+  color: #c7d0ea;
+}
+
+.htbah-rules-content th {
+  background: #232f44;
+  color: #d5b773;
+}
+
+.htbah-rules-content .htbah-callout {
+  background: rgba(213, 183, 115, 0.1);
+  border: 1px solid rgba(213, 183, 115, 0.35);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  color: #e9dcb8;
+  font-size: 0.85rem;
+}
+
+.htbah-rules-foot {
+  padding: 12px 22px;
+  border-top: 1px solid #2f3d55;
+  font-size: 0.72rem;
+  color: #7a879f;
+  text-align: center;
+  flex: none;
+}
+
+.htbah-rules-foot a {
+  color: #7da4ff;
+}
+
+@media (max-width: 720px) {
+  .htbah-rules-body {
+    flex-direction: column;
+  }
+
+  .htbah-rules-nav {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-bottom: 1px solid #2f3d55;
+    max-height: 140px;
+  }
+}

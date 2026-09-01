@@ -123,7 +123,8 @@
     "cockpitAmbientNone": "Kein Ambiente für diesen Ort hinterlegt.",
     "newScenario": "Neues Szenario",
     "dbStatusLoading": "Lädt lokale Daten…",
-    "dbStatusSaved": "Lokal gespeichert"
+    "dbStatusSaved": "Lokal gespeichert",
+    "rulesHelp": "Regeln"
   },
   "ru": {
     "languageTitel": "Русский",
@@ -249,7 +250,8 @@
     "cockpitAmbientNone": "Для этого места атмосфера не задана.",
     "newScenario": "Новый сценарий",
     "dbStatusLoading": "Загрузка локальных данных…",
-    "dbStatusSaved": "Сохранено локально"
+    "dbStatusSaved": "Сохранено локально",
+    "rulesHelp": "Правила"
   },
   "en": {
     "languageTitel": "English",
@@ -375,6 +377,7 @@
     "cockpitAmbientNone": "No ambience set for this place.",
     "newScenario": "New Scenario",
     "dbStatusLoading": "Loading local data…",
-    "dbStatusSaved": "Saved locally"
+    "dbStatusSaved": "Saved locally",
+    "rulesHelp": "Rules"
   }
 }

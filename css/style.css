@@ -1310,6 +1310,7 @@ div.attributes-section>div>div:nth-child(2) {
   right: 32px;
   display: flex;
   align-items: center;
+  gap: 12px;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -1583,6 +1584,14 @@ button.active {
 #sidebar.collapsed #dbStatusFooter {
   justify-content: center;
   padding: 10px 0 0;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .ambient-filename {

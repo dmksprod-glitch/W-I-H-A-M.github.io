@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700&family=Libre+Franklin:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/rulesHelp.css">
   <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
   <title>WIHAM?</title>
   <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
@@ -75,6 +76,10 @@
       </div>
     </div>
     <div id="headerRight">
+      <button type="button" class="rules-help-btn" data-rules-topic="" title="How to be a Hero – Regeln nachschlagen">
+        <span class="mdi mdi-book-open-page-variant-outline"></span>
+        <span data-i18n="rulesHelp">Regeln</span>
+      </button>
       <span id="notificationBell" class="bell mdi mdi-bell">
         <span id="notificationCount" class="count">0</span>
       </span>
@@ -207,7 +212,13 @@
       <!-- Cockpit / GM Overview Section -->
       <div id="divCockpit" style="display: none;">
         <div id="cockpitIntro">
-          <h2 data-i18n="cockpitPageTitle">Spielleiter-Cockpit</h2>
+          <h2 class="section-heading">
+            <span data-i18n="cockpitPageTitle">Spielleiter-Cockpit</span>
+            <button type="button" class="rules-help-btn" data-rules-topic="proben" title="How to be a Hero – Regeln nachschlagen">
+              <span class="mdi mdi-book-open-page-variant-outline"></span>
+              <span data-i18n="rulesHelp">Regeln</span>
+            </button>
+          </h2>
           <p data-i18n="cockpitIntro">Alles Wichtige zum aktuellen Ort und Zeitpunkt auf einen Blick.</p>
         </div>
 
@@ -317,7 +328,13 @@
 
       <!-- NPC Editor Section -->
       <div id="divNPCEditor" style="display: none;">
-        <h2 data-i18n="npcEditor">NPC-Editor</h2>
+        <h2 class="section-heading">
+          <span data-i18n="npcEditor">NPC-Editor</span>
+          <button type="button" class="rules-help-btn" data-rules-topic="begabungen" title="Begabungen & Fähigkeiten nachschlagen">
+            <span class="mdi mdi-book-open-page-variant-outline"></span>
+            <span data-i18n="rulesHelp">Regeln</span>
+          </button>
+        </h2>
         <div class="editor-field">
           <label data-i18n="id" for="txtNPCId">ID:</label>
           <input type="text" id="txtNPCId" disabled />
@@ -427,7 +444,13 @@
 
       <!-- Object Editor Section -->
       <div id="divObjectEditor" style="display: none;">
-        <h2 data-i18n="objectEditor">Objekt-Editor</h2>
+        <h2 class="section-heading">
+          <span data-i18n="objectEditor">Objekt-Editor</span>
+          <button type="button" class="rules-help-btn" data-rules-topic="schaden" title="Schaden & Waffentabelle nachschlagen">
+            <span class="mdi mdi-book-open-page-variant-outline"></span>
+            <span data-i18n="rulesHelp">Regeln</span>
+          </button>
+        </h2>
         <div class="editor-field">
           <label data-i18n="id" for="objectId">ID:</label>
           <input type="text" id="objectId" disabled />
@@ -705,6 +728,7 @@
   <script src="js/notification.js"></script>
   <script src="js/main.js"></script>
   <script src="js/db.js"></script>
+  <script src="js/htbahRules.js"></script>
 </body>
 
 </html>
