@@ -7,8 +7,9 @@
  ********************************************************************************/
 
 const WIHAM_DB_NAME = "wiham_scenario_db";
-const WIHAM_DB_VERSION = 1;
+const WIHAM_DB_VERSION = 2;
 const WIHAM_STORE_NAME = "scenario";
+const WIHAM_AUDIO_STORE_NAME = "audioAssets";
 const WIHAM_RECORD_KEY = "current";
 const AUTOSAVE_INTERVAL_MS = 4000;
 
@@ -16,21 +17,160 @@ function openScenarioDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(WIHAM_DB_NAME, WIHAM_DB_VERSION);
         request.onupgradeneeded = () => {
-            request.result.createObjectStore(WIHAM_STORE_NAME);
+            const db = request.result;
+            if (!db.objectStoreNames.contains(WIHAM_STORE_NAME)) {
+                db.createObjectStore(WIHAM_STORE_NAME);
+            }
+            if (!db.objectStoreNames.contains(WIHAM_AUDIO_STORE_NAME)) {
+                db.createObjectStore(WIHAM_AUDIO_STORE_NAME);
+            }
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
     });
 }
 
+function dataUrlToBlob(dataUrl) {
+    return fetch(dataUrl).then(res => res.blob());
+}
+
+function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+    });
+}
+
+/**
+ * Persists a single ambient track's / sound effect's audio into its own
+ * IndexedDB store, as a Blob rather than a base64 string. Called once per
+ * upload/import - never from the periodic autosave - so large audio files
+ * don't get re-cloned into IndexedDB every few seconds.
+ */
+async function saveAudioAsset(id, dataUrl) {
+    if (!dataUrl) return;
+    const blob = await dataUrlToBlob(dataUrl);
+    const db = await openScenarioDB();
+    await new Promise((resolve, reject) => {
+        const tx = db.transaction(WIHAM_AUDIO_STORE_NAME, "readwrite");
+        tx.objectStore(WIHAM_AUDIO_STORE_NAME).put(blob, id);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+async function deleteAudioAsset(id) {
+    const db = await openScenarioDB();
+    await new Promise((resolve, reject) => {
+        const tx = db.transaction(WIHAM_AUDIO_STORE_NAME, "readwrite");
+        tx.objectStore(WIHAM_AUDIO_STORE_NAME).delete(id);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+async function loadAllAudioAssets() {
+    const db = await openScenarioDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(WIHAM_AUDIO_STORE_NAME, "readonly");
+        const store = tx.objectStore(WIHAM_AUDIO_STORE_NAME);
+        const keysRequest = store.getAllKeys();
+        const valuesRequest = store.getAll();
+        tx.oncomplete = () => {
+            const map = new Map();
+            keysRequest.result.forEach((key, i) => map.set(key, valuesRequest.result[i]));
+            resolve(map);
+        };
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+/**
+ * Writes every ambient track's / sound effect's audio (across all places)
+ * into the audio asset store in one transaction. Used after a bulk change
+ * that bypasses the per-upload save path, e.g. a ZIP import.
+ */
+async function persistAllAudioAssets(currentPlaces) {
+    const items = [];
+    (currentPlaces || []).forEach(place => {
+        (place.ambientTracks || []).forEach(track => {
+            if (track.audio) items.push([track.id, track.audio]);
+        });
+        (place.soundEffects || []).forEach(effect => {
+            if (effect.audio) items.push([effect.id, effect.audio]);
+        });
+    });
+    if (!items.length) return;
+
+    const blobs = await Promise.all(items.map(([, audio]) => dataUrlToBlob(audio)));
+    const db = await openScenarioDB();
+    await new Promise((resolve, reject) => {
+        const tx = db.transaction(WIHAM_AUDIO_STORE_NAME, "readwrite");
+        const store = tx.objectStore(WIHAM_AUDIO_STORE_NAME);
+        items.forEach(([id], i) => store.put(blobs[i], id));
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+/**
+ * Re-attaches audio (as base64 data URLs, for compatibility with playback
+ * and ZIP export) from the audio asset store onto the in-memory places,
+ * whose ambientTracks/soundEffects were loaded without their `audio` field
+ * (see stripAudioForAutosave). Runs once at startup.
+ */
+async function restoreAudioAssetsIntoPlaces(currentPlaces) {
+    const assetMap = await loadAllAudioAssets();
+    if (!assetMap.size) return;
+
+    const conversions = [];
+    (currentPlaces || []).forEach(place => {
+        (place.ambientTracks || []).forEach(track => {
+            const blob = assetMap.get(track.id);
+            if (blob) conversions.push(blobToDataUrl(blob).then(url => { track.audio = url; }));
+        });
+        (place.soundEffects || []).forEach(effect => {
+            const blob = assetMap.get(effect.id);
+            if (blob) conversions.push(blobToDataUrl(blob).then(url => { effect.audio = url; }));
+        });
+    });
+    await Promise.all(conversions);
+}
+
+/**
+ * Returns a shallow copy of places with each ambient track's / sound
+ * effect's `audio` field removed. The audio itself lives in the separate
+ * audioAssets store (see saveAudioAsset) - keeping it out of this snapshot
+ * is what keeps the periodic autosave clone cheap regardless of how much
+ * audio is loaded.
+ */
+function stripAudioForAutosave(currentPlaces) {
+    return (currentPlaces || []).map(place => {
+        if (!place.ambientTracks && !place.soundEffects) return place;
+        return {
+            ...place,
+            ambientTracks: (place.ambientTracks || []).map(({ audio, ...rest }) => rest),
+            soundEffects: (place.soundEffects || []).map(({ audio, ...rest }) => rest)
+        };
+    });
+}
+
 /**
  * Writes the current in-memory scenario into IndexedDB, overwriting the
- * previous autosave.
+ * previous autosave. Ambient/effect audio is excluded from this snapshot -
+ * it is persisted separately, only when it actually changes - so this stays
+ * cheap to clone even with many large audio files loaded.
  */
 async function saveScenarioToDB() {
     try {
         const db = await openScenarioDB();
-        const snapshot = { meta, npcs, objects, places, timeline, events, playerCharacters };
+        const snapshot = {
+            meta, npcs, objects,
+            places: stripAudioForAutosave(places),
+            timeline, events, playerCharacters
+        };
         await new Promise((resolve, reject) => {
             const tx = db.transaction(WIHAM_STORE_NAME, "readwrite");
             tx.objectStore(WIHAM_STORE_NAME).put(snapshot, WIHAM_RECORD_KEY);
@@ -63,8 +203,9 @@ async function loadScenarioFromDB() {
 async function clearScenarioDB() {
     const db = await openScenarioDB();
     await new Promise((resolve, reject) => {
-        const tx = db.transaction(WIHAM_STORE_NAME, "readwrite");
+        const tx = db.transaction([WIHAM_STORE_NAME, WIHAM_AUDIO_STORE_NAME], "readwrite");
         tx.objectStore(WIHAM_STORE_NAME).delete(WIHAM_RECORD_KEY);
+        tx.objectStore(WIHAM_AUDIO_STORE_NAME).clear();
         tx.oncomplete = resolve;
         tx.onerror = () => reject(tx.error);
     });
@@ -159,6 +300,8 @@ async function initScenarioFromDB() {
                 }
                 defaultPlace.soundEffects.push(...saved.soundEffects);
             }
+
+            await restoreAudioAssetsIntoPlaces(places);
         }
     } catch (error) {
         console.error("Could not load autosaved scenario:", error);

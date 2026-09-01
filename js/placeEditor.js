@@ -444,6 +444,9 @@ function addAmbientTrackFromFile(place, file, name) {
     if (typeof renderSoundUiSafe === "function") {
       renderSoundUiSafe();
     }
+    if (typeof saveAudioAsset === "function") {
+      saveAudioAsset(track.id, track.audio);
+    }
   };
   reader.readAsDataURL(file);
 }
@@ -470,6 +473,9 @@ function deleteAmbientTrack(placeId, trackId) {
   renderPlaceAmbientTracks(place);
   if (typeof renderSoundUiSafe === "function") {
     renderSoundUiSafe();
+  }
+  if (typeof deleteAudioAsset === "function") {
+    deleteAudioAsset(trackId);
   }
 }
 

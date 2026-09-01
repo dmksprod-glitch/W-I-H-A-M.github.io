@@ -210,14 +210,18 @@ function addSoundEffectFromFile(place, file, name) {
     const reader = new FileReader();
     reader.onload = (e) => {
         ensurePlaceAmbientMigrated(place);
-        place.soundEffects.push({
+        const effect = {
             id: generateID(),
             name: (name && name.trim()) ? name.trim() : file.name.replace(/\.[^/.]+$/, ""),
             audio: e.target.result
-        });
+        };
+        place.soundEffects.push(effect);
         renderSoundUiSafe();
         if (typeof renderPlaceSoundboard === "function") {
             renderPlaceSoundboard(place);
+        }
+        if (typeof saveAudioAsset === "function") {
+            saveAudioAsset(effect.id, effect.audio);
         }
     };
     reader.readAsDataURL(file);
@@ -229,6 +233,9 @@ function deleteSoundEffect(place, effectId) {
     renderSoundUiSafe();
     if (typeof renderPlaceSoundboard === "function") {
         renderPlaceSoundboard(place);
+    }
+    if (typeof deleteAudioAsset === "function") {
+        deleteAudioAsset(effectId);
     }
 }
 

@@ -228,7 +228,12 @@ async function importScenario(zipContent) {
 
         // Update every part of the UI with the newly imported data, and
         // immediately persist it so it becomes the new autosaved scenario.
+        // Audio is written to its own store explicitly here, since the
+        // autosave snapshot itself no longer carries it (see db.js).
         refreshAllScenarioUI();
+        if (typeof persistAllAudioAssets === "function") {
+            await persistAllAudioAssets(places);
+        }
         if (typeof saveScenarioToDB === "function") {
             saveScenarioToDB();
         }
