@@ -127,7 +127,14 @@
     "newScenario": "Neues Szenario",
     "dbStatusLoading": "Lädt lokale Daten…",
     "dbStatusSaved": "Lokal gespeichert",
-    "rulesHelp": "Regeln"
+    "rulesHelp": "Regeln",
+    "characters": "Charaktere",
+    "charactersEmpty": "Noch keine Charaktere hochgeladen.",
+    "uploadCharacter": "+ Charakter hochladen",
+    "charactersHandoffImport": "Übernehmen",
+    "charactersHandoffOne": "Ein Charakter aus dem Charakter-Creator wartet auf Import.",
+    "charactersHandoffMany": "Charaktere aus dem Charakter-Creator warten auf Import.",
+    "charactersOpenAll": "Alle ansehen"
   },
   "ru": {
     "languageTitel": "Русский",
@@ -257,7 +264,14 @@
     "newScenario": "Новый сценарий",
     "dbStatusLoading": "Загрузка локальных данных…",
     "dbStatusSaved": "Сохранено локально",
-    "rulesHelp": "Правила"
+    "rulesHelp": "Правила",
+    "characters": "Персонажи",
+    "charactersEmpty": "Персонажи ещё не загружены.",
+    "uploadCharacter": "+ Загрузить персонажа",
+    "charactersHandoffImport": "Принять",
+    "charactersHandoffOne": "Один персонаж из конструктора ждёт импорта.",
+    "charactersHandoffMany": "персонажей из конструктора ждут импорта.",
+    "charactersOpenAll": "Смотреть всех"
   },
   "en": {
     "languageTitel": "English",
@@ -387,6 +401,13 @@
     "newScenario": "New Scenario",
     "dbStatusLoading": "Loading local data…",
     "dbStatusSaved": "Saved locally",
-    "rulesHelp": "Rules"
+    "rulesHelp": "Rules",
+    "characters": "Characters",
+    "charactersEmpty": "No characters uploaded yet.",
+    "uploadCharacter": "+ Upload Character",
+    "charactersHandoffImport": "Import",
+    "charactersHandoffOne": "One character from the Character Creator is ready to import.",
+    "charactersHandoffMany": "characters from the Character Creator are ready to import.",
+    "charactersOpenAll": "View all"
   }
 }

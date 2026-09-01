@@ -1298,6 +1298,7 @@
           <button id="btnImportJSON" class="secondary" type="button">Import JSON</button>
           <button id="btnPrint" class="secondary" type="button">Drucken</button>
           <button id="btnReset" class="danger" type="button">Zurücksetzen</button>
+          <p style="color:var(--muted); font-size:12px; margin:8px 0 0;">Export JSON lädt die Datei herunter (zum Schicken an den Spielleiter) und stellt sie zusätzlich bereit, falls WIHAM im selben Browser läuft.</p>
         </div>
         <input id="inputImportFile" class="import-input" type="file" accept="application/json">
       </div>
@@ -2369,6 +2370,29 @@ function renderCategoryTable(tbody, abilities, metrics, desiredRowCount) {
         reader.readAsDataURL(file);
       }
 
+      const HTBAH_HANDOFF_KEY = "wiham_pc_handoff";
+      const HTBAH_HANDOFF_LIMIT = 20;
+
+      // Also drops a copy of the exported character into localStorage, so
+      // the WIHAM GM tool can pick it up directly if it's open in the same
+      // browser - no file needed. Purely a same-browser convenience; the
+      // downloaded file remains the way to hand a sheet to a GM on another
+      // device.
+      function dropCharacterForGM(payload) {
+        try {
+          const raw = localStorage.getItem(HTBAH_HANDOFF_KEY);
+          const pending = raw ? JSON.parse(raw) : [];
+          const list = Array.isArray(pending) ? pending : [];
+          list.push({ payload, sentAt: new Date().toISOString() });
+          while (list.length > HTBAH_HANDOFF_LIMIT) list.shift();
+          localStorage.setItem(HTBAH_HANDOFF_KEY, JSON.stringify(list));
+        } catch (error) {
+          // Best-effort only (e.g. storage full or blocked) - the file
+          // download above already succeeded, so this is not fatal.
+          console.warn("Konnte Charakter nicht für den Spielleiter bereitstellen:", error);
+        }
+      }
+
       function exportToJSON() {
         try {
           const payload = buildExportPayload();
@@ -2382,6 +2406,7 @@ function renderCategoryTable(tbody, abilities, metrics, desiredRowCount) {
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
+          dropCharacterForGM(payload);
         } catch (error) {
           window.alert(`Export fehlgeschlagen: ${error.message}`);
         }

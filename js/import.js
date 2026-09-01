@@ -107,6 +107,15 @@ async function importScenario(zipContent) {
             });
         }
 
+        // Import player character sheets (missing file just means a
+        // scenario exported before this feature existed)
+        try {
+            const playerCharactersData = await zipContent.file("playercharacters.json").async("string");
+            playerCharacters = JSON.parse(playerCharactersData);
+        } catch {
+            playerCharacters = [];
+        }
+
         // Sound effects used to be one global list (soundeffects.json); they
         // now live per-place. If this ZIP predates that, keep the legacy
         // list around so it can be reattached to the default place once
@@ -141,6 +150,9 @@ async function importScenario(zipContent) {
                         } else if (type === "place") {
                             const place = places.find(p => p.id === id);
                             if (place) place.background = image;
+                        } else if (type === "pc") {
+                            const pc = playerCharacters.find(p => p.id === id);
+                            if (pc) pc.portrait = image;
                         }
                     }
                 }

@@ -30,7 +30,7 @@ function openScenarioDB() {
 async function saveScenarioToDB() {
     try {
         const db = await openScenarioDB();
-        const snapshot = { meta, npcs, objects, places, timeline, events };
+        const snapshot = { meta, npcs, objects, places, timeline, events, playerCharacters };
         await new Promise((resolve, reject) => {
             const tx = db.transaction(WIHAM_STORE_NAME, "readwrite");
             tx.objectStore(WIHAM_STORE_NAME).put(snapshot, WIHAM_RECORD_KEY);
@@ -112,6 +112,15 @@ function refreshAllScenarioUI() {
     if (typeof renderCockpit === "function") {
         renderCockpit();
     }
+    if (typeof renderCharacterModalNav === "function") {
+        renderCharacterModalNav();
+    }
+    if (typeof renderCharacterHandoffBanner === "function") {
+        renderCharacterHandoffBanner();
+    }
+    if (typeof renderCockpitCharacterList === "function") {
+        renderCockpitCharacterList();
+    }
 }
 
 let autosaveInterval = null;
@@ -136,6 +145,7 @@ async function initScenarioFromDB() {
             places = saved.places || [];
             timeline = saved.timeline || [];
             events = saved.events || [];
+            playerCharacters = saved.playerCharacters || [];
 
             // Sound effects used to be one global list, saved separately.
             // Reattach any leftovers from an older autosave to the default
@@ -188,6 +198,8 @@ document.getElementById("btnNewScenario").addEventListener("click", async () => 
     places = [];
     timeline = [];
     events = [];
+    playerCharacters = [];
+    currentCharacterId = null;
 
     await clearScenarioDB();
     location.reload();

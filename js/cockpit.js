@@ -97,6 +97,9 @@ function renderCockpit() {
     if (!document.getElementById("divCockpit")) return;
     renderCockpitTimeline();
     renderCockpitPlaceChips();
+    if (typeof renderCockpitCharacterList === "function") {
+        renderCockpitCharacterList();
+    }
     renderCockpitNow();
     renderCockpitLog();
     renderCockpitUpcoming();

@@ -1594,6 +1594,13 @@ button.active {
   flex-wrap: wrap;
 }
 
+.section-note {
+  color: var(--ui-text-muted);
+  font-size: 0.88rem;
+  max-width: 70ch;
+  margin: 0 0 18px;
+}
+
 /* Ambient track list (Place-Editor) */
 .ambient-empty {
   color: var(--ui-text-muted);
@@ -2278,4 +2285,240 @@ details.cockpit-collapsible .cockpit-plot-text {
   .cockpit-now-sections {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================================
+   Player Characters
+   ============================================================ */
+
+/* Popup shell (extends the shared .htbah-rules-modal from rulesHelp.css) */
+.character-modal {
+  width: min(980px, 100%);
+}
+
+.character-modal-foot {
+  padding: 14px 22px;
+  border-top: 1px solid var(--ui-border);
+  flex: none;
+  text-align: right;
+}
+
+.character-modal-foot #btnCharacterUpload {
+  background: var(--ui-gold);
+  color: #1a1204;
+  border-color: var(--ui-gold);
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.character-modal .character-handoff-banner {
+  margin: 16px 22px 0;
+}
+
+.character-handoff-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(213, 183, 115, 0.12);
+  border: 1px solid var(--ui-gold);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  color: var(--ui-text);
+  font-size: 0.88rem;
+}
+
+.character-handoff-banner.hidden {
+  display: none;
+}
+
+.character-handoff-banner .mdi {
+  color: var(--ui-gold);
+  font-size: 20px;
+}
+
+.character-handoff-banner span:not(.mdi) {
+  flex: 1;
+}
+
+.character-handoff-banner button[data-i18n="charactersHandoffImport"] {
+  background: var(--ui-gold);
+  color: #1a1204;
+  border-color: var(--ui-gold);
+  font-weight: 600;
+}
+
+/* Detail read-out (popup content pane) */
+.character-detail-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.character-detail-portrait {
+  width: 92px;
+  height: 92px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--ui-border);
+  flex: none;
+}
+
+.character-detail-info {
+  flex: 1;
+}
+
+.character-detail-info h3 {
+  font-size: 1.3rem;
+  margin: 0 0 6px;
+}
+
+.character-meta-line {
+  color: var(--ui-text-muted);
+  font-size: 0.88rem;
+  margin: 0 0 4px;
+}
+
+.character-delete-btn {
+  background-color: var(--negativ-color);
+  color: #fff;
+  border-color: var(--negativ-color);
+  flex: none;
+}
+
+.character-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.character-skill-col {
+  background: var(--ui-surface-alt);
+  border: 1px solid var(--ui-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.character-skill-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.character-skill-col-head strong {
+  font-family: "Kanit", "Libre Franklin", system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.85rem;
+}
+
+.character-skill-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.character-skill-table td {
+  padding: 5px 0;
+  border-bottom: 1px dotted var(--ui-border);
+  color: var(--ui-text-muted);
+}
+
+.character-skill-table td:first-child {
+  color: var(--ui-text);
+}
+
+.character-skill-table td.character-skill-total {
+  text-align: right;
+  color: var(--ui-gold);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.character-extra-section {
+  margin-bottom: 18px;
+}
+
+.character-extra-text {
+  white-space: pre-wrap;
+  color: var(--ui-text);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+/* Cockpit quick-glance roster */
+.cockpit-character-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cockpit-character-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: var(--ui-surface-alt);
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-align: left;
+  box-shadow: none;
+}
+
+.cockpit-character-row:hover {
+  border-color: var(--ui-border-strong);
+}
+
+.cockpit-character-row img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+  border: 1px solid var(--ui-border);
+}
+
+.cockpit-character-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cockpit-character-row-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ui-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cockpit-character-row-profession {
+  font-size: 0.72rem;
+  color: var(--ui-text-muted);
+}
+
+.cockpit-character-row-badges {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+.cockpit-character-badge {
+  font-family: "Kanit", "Libre Franklin", system-ui, sans-serif;
+  font-size: 0.68rem;
+  color: var(--ui-text-muted);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  padding: 2px 5px;
 }

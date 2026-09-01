@@ -74,6 +74,14 @@ function generatePlacesJSON() {
     return placesReturn;
 }
 
+// Returns an array of player character sheets, adjusting portrait paths for export
+function generatePlayerCharactersJSON() {
+    return playerCharacters.map(pc => ({
+        ...pc,
+        portrait: pc.portrait ? `images/pc_${pc.id}.png` : null
+    }));
+}
+
 // Creates a ZIP archive containing all scenario data and triggers the download
 function exportScenario() {
     const zip = new JSZip();
@@ -91,6 +99,9 @@ function exportScenario() {
     zip.file("timeline.json", JSON.stringify(timelineData, null, 2));
 
     zip.file("events.json", JSON.stringify(events, null, 2));
+
+    const playerCharactersData = generatePlayerCharactersJSON();
+    zip.file("playercharacters.json", JSON.stringify(playerCharactersData, null, 2));
 
     const metaObj = { ...meta };
     zip.file("meta.json", JSON.stringify(metaObj, null, 2));
@@ -115,6 +126,13 @@ function exportScenario() {
         if (place.background && !place.background.includes("assets/default_object.png")) {
             const base64Data = place.background.split(",")[1];
             imagesFolder.file(`place_${place.id}.png`, base64Data, { base64: true });
+        }
+    });
+
+    playerCharacters.forEach(pc => {
+        if (pc.portrait) {
+            const base64Data = pc.portrait.split(",")[1];
+            imagesFolder.file(`pc_${pc.id}.png`, base64Data, { base64: true });
         }
     });
 

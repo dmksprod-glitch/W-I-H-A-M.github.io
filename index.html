@@ -49,6 +49,35 @@
     </div>
   </div>
 
+  <!-- Player Characters Popup -->
+  <div id="characterModalOverlay" class="htbah-rules-overlay hidden">
+    <div class="htbah-rules-modal character-modal">
+      <div class="htbah-rules-head">
+        <h2 data-i18n="characters">Charaktere</h2>
+        <button type="button" class="htbah-rules-close" id="btnCloseCharacterModal" aria-label="Schließen">&times;</button>
+      </div>
+
+      <div id="characterHandoffBanner" class="character-handoff-banner hidden">
+        <span class="mdi mdi-account-arrow-right-outline"></span>
+        <span id="characterHandoffText"></span>
+        <button type="button" id="btnCharacterHandoffImport" data-i18n="charactersHandoffImport">Übernehmen</button>
+        <button type="button" id="btnCharacterHandoffDismiss" class="cockpit-icon-btn" title="Verwerfen">
+          <span class="mdi mdi-close"></span>
+        </button>
+      </div>
+
+      <div class="htbah-rules-body">
+        <nav class="htbah-rules-nav" id="characterModalNav"></nav>
+        <div class="htbah-rules-content" id="characterModalContent"></div>
+      </div>
+
+      <div class="character-modal-foot">
+        <input type="file" id="inputCharacterUpload" accept="application/json,.json" style="display: none;" />
+        <button type="button" id="btnCharacterUpload" data-i18n="uploadCharacter">+ Charakter hochladen</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Application header with logo, clock, timer, location/time controls, and language selector -->
   <header>
     <div id="headerLeft">
@@ -95,6 +124,10 @@
           <div id="headerSfxGrid" class="cockpit-sfx-grid"></div>
         </div>
       </div>
+      <button type="button" class="rules-help-btn" id="btnOpenCharacters" title="Spielercharaktere ansehen">
+        <span class="mdi mdi-account-group-outline"></span>
+        <span data-i18n="characters">Charaktere</span>
+      </button>
       <button type="button" class="rules-help-btn" data-rules-topic="" title="How to be a Hero – Regeln nachschlagen">
         <span class="mdi mdi-book-open-page-variant-outline"></span>
         <span data-i18n="rulesHelp">Regeln</span>
@@ -298,6 +331,15 @@
           </div>
 
           <div id="cockpitColSide">
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="characters">Charaktere</h3>
+                <button type="button" id="btnCockpitOpenCharacters" class="cockpit-chip-btn"
+                  data-i18n="charactersOpenAll">Alle ansehen</button>
+              </div>
+              <div id="cockpitCharacterList" class="cockpit-character-list"></div>
+            </section>
+
             <section class="cockpit-panel">
               <div class="cockpit-panel-head">
                 <h3 data-i18n="cockpitSoundTitle">Sound</h3>
@@ -723,6 +765,7 @@
   <script src="js/locales.js"></script>
   <script src="js/meta.js"></script>
   <script src="js/npcEditor.js"></script>
+  <script src="js/characterEditor.js"></script>
   <script src="js/objectEditor.js"></script>
   <script src="js/eventEditor.js"></script>
   <script src="js/cockpit.js"></script>

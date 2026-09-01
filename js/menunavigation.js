@@ -83,6 +83,9 @@ btnCockpit.addEventListener("click", () => {
     if (typeof renderCockpit === "function") {
         renderCockpit();
     }
+    if (typeof renderCockpitCharacterList === "function") {
+        renderCockpitCharacterList();
+    }
 });
 
 /**
