@@ -38,6 +38,43 @@ const divEventEditor = document.getElementById("divEventEditor");
 const cockpitMapSlot = document.getElementById("cockpitMapSlot");
 const mainContentEl = document.getElementById("mainContent");
 
+// Map Zoom popup (Cockpit only): clicking the map (or its expand button)
+// re-parents the same shared #mapContainer once more, into the popup's
+// slot, so the GM can see it larger without leaving the Cockpit. Closing it
+// puts the map back into #cockpitMapSlot.
+const mapZoomOverlay = document.getElementById("mapZoomOverlay");
+const mapZoomSlot = document.getElementById("mapZoomSlot");
+const btnCloseMapZoom = document.getElementById("btnCloseMapZoom");
+const btnCockpitMapZoom = document.getElementById("btnCockpitMapZoom");
+
+function openMapZoom() {
+    if (!mapZoomOverlay || !mapZoomSlot || !cockpitMapSlot.contains(mapContainer)) return;
+    mapZoomSlot.appendChild(mapContainer);
+    mapZoomOverlay.classList.remove("hidden");
+    loadSelectedPlace(locationSelect.value);
+}
+
+function closeMapZoom() {
+    if (!mapZoomOverlay || mapZoomOverlay.classList.contains("hidden")) return;
+    mapZoomOverlay.classList.add("hidden");
+    cockpitMapSlot.appendChild(mapContainer);
+    mapContainer.style.display = "block";
+    loadSelectedPlace(locationSelect.value);
+}
+
+cockpitMapSlot?.addEventListener("click", openMapZoom);
+btnCockpitMapZoom?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openMapZoom();
+});
+btnCloseMapZoom?.addEventListener("click", closeMapZoom);
+mapZoomOverlay?.addEventListener("click", (e) => {
+    if (e.target === mapZoomOverlay) closeMapZoom();
+});
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMapZoom();
+});
+
 // Collect all containers for toggling visibility
 const allContainer = [
     divCockpit,
@@ -75,6 +112,7 @@ const tabContents = document.querySelectorAll("#tabContents .tab-content");
 btnCockpit.addEventListener("click", () => {
     const exeptBtns = [tabBtnSelected, tabBtnNPCs, tabBtnObjects, tabBtnInventory];
     editScenarioEnabled = false;
+    closeMapZoom();
     switchMenu(divCockpit, btnCockpit, exeptBtns);
     cockpitMapSlot.appendChild(mapContainer);
     mapContainer.style.display = "block";
@@ -148,6 +186,7 @@ btnEditScenario.addEventListener("click", () => {
 btnScenario.addEventListener("click", () => {
     const exeptBtns = [tabBtnSelected, tabBtnNPCs, tabBtnObjects, tabBtnInventory];
     editScenarioEnabled = false;
+    closeMapZoom();
     mainContentEl.prepend(mapContainer);
     switchMenu(mapContainer, btnScenario, exeptBtns);
     loadSelectedPlace(locationSelect.value);

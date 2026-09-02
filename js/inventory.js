@@ -23,8 +23,11 @@ function renderdivInventoryListRight() {
     const inventoryContainer = document.createElement("div");
     inventoryContainer.classList.add("inventory-container");
 
-    // Filter out objects that have no position (i.e., in the player's inventory)
-    const playerObjects = objects.filter(obj => obj.position === null);
+    // Filter out objects that have no position (i.e., in the player's
+    // inventory) or that were explicitly marked as collected on the map -
+    // that object's original position is kept for reference, so it isn't
+    // caught by the position === null check on its own.
+    const playerObjects = objects.filter(obj => obj.position === null || obj.collected);
 
     // Render a card for each of these objects
     playerObjects.forEach(obj => {

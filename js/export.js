@@ -43,7 +43,8 @@ function generateObjectsJSON() {
             targetId: obj.position.targetId,
             x: obj.position.type === "place" ? obj.position.x : undefined,
             y: obj.position.type === "place" ? obj.position.y : undefined
-        } : null
+        } : null,
+        collected: !!obj.collected
     }));
 }
 

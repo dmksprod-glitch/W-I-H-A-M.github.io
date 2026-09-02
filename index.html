@@ -78,6 +78,32 @@
     </div>
   </div>
 
+  <!-- Map Zoom Popup (Cockpit): the map is a single shared element that gets
+       physically moved in here on click, and back to #cockpitMapSlot on
+       close - see js/cockpit.js -->
+  <div id="mapZoomOverlay" class="htbah-rules-overlay hidden">
+    <div class="map-zoom-modal">
+      <button type="button" class="htbah-rules-close map-zoom-close" id="btnCloseMapZoom" aria-label="Schließen">&times;</button>
+      <div id="mapZoomSlot" class="map-zoom-slot"></div>
+    </div>
+  </div>
+
+  <!-- Event Alert: large, unmissable popup shown whenever an event's
+       conditions trigger for the first time - see registerCockpitEvent /
+       showEventAlert in js/cockpit.js. Sits above every other popup. -->
+  <div id="eventAlertOverlay" class="htbah-rules-overlay hidden">
+    <div class="event-alert-modal">
+      <div class="event-alert-icon"><span class="mdi mdi-alert-decagram-outline"></span></div>
+      <div class="event-alert-eyebrow" data-i18n="eventAlertEyebrow">Ereignis ausgelöst</div>
+      <h2 id="eventAlertName" class="event-alert-name"></h2>
+      <div id="eventAlertDesc" class="event-alert-desc"></div>
+      <div class="event-alert-actions">
+        <span id="eventAlertQueueHint" class="event-alert-queue-hint"></span>
+        <button type="button" id="btnEventAlertNext" class="event-alert-btn" data-i18n="eventAlertDismiss">Verstanden</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Application header with logo, clock, timer, location/time controls, and language selector -->
   <header>
     <div id="headerLeft">
@@ -291,7 +317,12 @@
                 </div>
                 <span class="cockpit-chip" id="cockpitNowTimeChip"></span>
               </div>
-              <div id="cockpitMapSlot" class="cockpit-map-slot"></div>
+              <div class="cockpit-map-wrap">
+                <div id="cockpitMapSlot" class="cockpit-map-slot"></div>
+                <button type="button" id="btnCockpitMapZoom" class="cockpit-map-zoom-btn" title="Karte vergrößern">
+                  <span class="mdi mdi-arrow-expand"></span>
+                </button>
+              </div>
               <div class="cockpit-now-sections">
                 <div>
                   <div class="cockpit-group-label" data-i18n="npcsHere">NPCs hier</div>
@@ -343,10 +374,20 @@
             <section class="cockpit-panel">
               <div class="cockpit-panel-head">
                 <h3 data-i18n="cockpitSoundTitle">Sound</h3>
+                <button type="button" id="cockpitStopSfx" class="cockpit-chip-btn" data-i18n="cockpitStopSfx">Stoppen</button>
               </div>
               <div id="cockpitAmbientStatus" class="cockpit-ambient-status"></div>
-              <div class="cockpit-hint" data-i18n="cockpitSoundHeaderHint">Steuerung &amp; Soundboard: oben im
+              <div id="cockpitSfxGrid" class="cockpit-sfx-grid"></div>
+              <div class="cockpit-hint" data-i18n="cockpitSoundHeaderHint">Ambiente-Lautstärke &amp; Auswahl: oben im
                 Header.</div>
+            </section>
+
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="cockpitFoundItemsTitle">Gefundene Gegenstände</h3>
+                <span class="cockpit-chip" id="cockpitFoundItemsCount"></span>
+              </div>
+              <div id="cockpitFoundItemsList" class="cockpit-found-items-list"></div>
             </section>
 
             <section class="cockpit-panel">

@@ -33,7 +33,70 @@ function registerCockpitEvent(event) {
     });
 
     renderCockpitLog();
+    if (typeof showEventAlert === "function") {
+        showEventAlert(event);
+    }
 }
+
+/********************************************************************************
+ * Event Alert: a large, unmissable popup shown the moment an event's
+ * conditions are met for the first time (see registerCockpitEvent above,
+ * which only fires once per event). Sits above every other popup and works
+ * regardless of which tab/view the GM currently has open. If several events
+ * trigger at once, they queue up and are shown one at a time.
+ ********************************************************************************/
+
+let eventAlertQueue = [];
+let eventAlertShowing = false;
+
+function showEventAlert(event) {
+    eventAlertQueue.push(event);
+    if (eventAlertShowing) {
+        updateEventAlertQueueHint();
+    } else {
+        displayNextEventAlert();
+    }
+}
+
+function displayNextEventAlert() {
+    const overlay = document.getElementById("eventAlertOverlay");
+    if (!overlay) return;
+
+    const event = eventAlertQueue.shift();
+    if (!event) {
+        eventAlertShowing = false;
+        overlay.classList.add("hidden");
+        return;
+    }
+
+    eventAlertShowing = true;
+    const nameEl = document.getElementById("eventAlertName");
+    const descEl = document.getElementById("eventAlertDesc");
+    if (nameEl) nameEl.textContent = event.name || "";
+    if (descEl) descEl.innerHTML = event.description || "";
+    updateEventAlertQueueHint();
+    overlay.classList.remove("hidden");
+}
+
+function updateEventAlertQueueHint() {
+    const hint = document.getElementById("eventAlertQueueHint");
+    if (!hint) return;
+    hint.textContent = eventAlertQueue.length ? `+${eventAlertQueue.length} ${t("eventAlertQueued")}` : "";
+}
+
+function dismissEventAlert() {
+    displayNextEventAlert();
+}
+
+document.getElementById("btnEventAlertNext")?.addEventListener("click", dismissEventAlert);
+document.getElementById("eventAlertOverlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "eventAlertOverlay") dismissEventAlert();
+});
+document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const overlay = document.getElementById("eventAlertOverlay");
+    if (overlay && !overlay.classList.contains("hidden")) dismissEventAlert();
+});
 
 /**
  * Resolves a single event condition into a human-readable label.
@@ -85,7 +148,7 @@ function buildCockpitContext() {
             npc.schedule.some(entry => entry.placeId === placeId && entry.timeStart === time?.id)
         ),
         timeOrder: time?.order,
-        objects: objects.filter(obj => obj.position === null),
+        objects: objects.filter(obj => obj.position === null || obj.collected),
         place: placeId
     };
 }
@@ -103,6 +166,7 @@ function renderCockpit() {
     renderCockpitNow();
     renderCockpitLog();
     renderCockpitUpcoming();
+    renderCockpitFoundItems();
     renderCockpitWhereis();
     renderCockpitPlot();
     renderCockpitNotes();
@@ -207,7 +271,7 @@ function renderCockpitNow() {
     if (objListEl) {
         objListEl.innerHTML = "";
         const presentObjs = place
-            ? objects.filter(obj => obj.position && obj.position.type === "place" && obj.position.targetId === place.id)
+            ? objects.filter(obj => obj.position && obj.position.type === "place" && obj.position.targetId === place.id && !obj.collected)
             : [];
         if (!presentObjs.length) {
             objListEl.innerHTML = `<p class="cockpit-empty">${t("cockpitNoObjectsHere")}</p>`;
@@ -215,6 +279,59 @@ function renderCockpitNow() {
             presentObjs.forEach(obj => objListEl.appendChild(renderItemCard(obj, "object")));
         }
     }
+}
+
+/**
+ * Renders the flat, global list of objects the GM has marked as collected
+ * on the map (obj.collected), with a way to put one back if that was a
+ * mistake. Independent of the currently selected place/time.
+ */
+function renderCockpitFoundItems() {
+    const list = document.getElementById("cockpitFoundItemsList");
+    const countEl = document.getElementById("cockpitFoundItemsCount");
+    if (!list) return;
+
+    const found = objects.filter(obj => obj.collected);
+    if (countEl) countEl.textContent = String(found.length);
+
+    list.innerHTML = "";
+    if (!found.length) {
+        list.innerHTML = `<p class="cockpit-empty">${t("cockpitFoundItemsEmpty")}</p>`;
+        return;
+    }
+
+    found.forEach(obj => {
+        const row = document.createElement("div");
+        row.className = "cockpit-found-item-row";
+
+        const img = document.createElement("img");
+        img.src = obj.image || "assets/default_object.png";
+        img.alt = obj.name || "";
+        row.appendChild(img);
+
+        const name = document.createElement("span");
+        name.className = "cockpit-found-item-name";
+        name.textContent = obj.name || "(unbenannt)";
+        row.appendChild(name);
+
+        const undoBtn = document.createElement("button");
+        undoBtn.type = "button";
+        undoBtn.className = "cockpit-icon-btn";
+        undoBtn.title = t("unmarkCollected");
+        undoBtn.innerHTML = '<span class="mdi mdi-undo-variant"></span>';
+        undoBtn.addEventListener("click", () => {
+            obj.collected = false;
+            renderCockpitFoundItems();
+            renderCockpitNow();
+            if (typeof loadSelectedPlace === "function" && typeof locationSelect !== "undefined") {
+                loadSelectedPlace(locationSelect.value);
+            }
+            if (typeof renderdivInventoryListRight === "function") renderdivInventoryListRight();
+        });
+        row.appendChild(undoBtn);
+
+        list.appendChild(row);
+    });
 }
 
 /**

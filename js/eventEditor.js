@@ -317,7 +317,7 @@ function updateAndCheckEvents() {
                 )
             ),
             timeOrder: timeline[currentIndex]?.order,
-            objects: objects.filter(obj => obj.position === null),
+            objects: objects.filter(obj => obj.position === null || obj.collected),
             place: currentPlace
         };
 

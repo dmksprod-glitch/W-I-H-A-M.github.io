@@ -243,6 +243,7 @@ function renderSoundUiSafe() {
     renderHeaderAmbientControls();
     renderHeaderSoundboard();
     renderCockpitAmbientStatus();
+    renderCockpitSoundboard();
 }
 
 /**
@@ -374,6 +375,16 @@ function renderPlaceSoundboard(place) {
     renderSoundboardGridForPlace("placeSfxGrid", place);
 }
 
+/**
+ * Renders the Cockpit's own soundboard grid for the currently selected
+ * place, so the GM can trigger effects without opening the header popover.
+ */
+function renderCockpitSoundboard() {
+    if (typeof locationSelect === "undefined") return;
+    const place = places.find(p => p.id === locationSelect.value);
+    renderSoundboardGridForPlace("cockpitSfxGrid", place);
+}
+
 document.getElementById("headerAmbientMuteBtn")?.addEventListener("click", toggleAmbientMute);
 
 document.getElementById("headerAmbientVolume")?.addEventListener("input", (e) => {
@@ -387,6 +398,7 @@ document.getElementById("headerAmbientTrackSelect")?.addEventListener("change", 
 });
 
 document.getElementById("headerStopSfx")?.addEventListener("click", stopAllSoundEffects);
+document.getElementById("cockpitStopSfx")?.addEventListener("click", stopAllSoundEffects);
 
 const headerSfxToggle = document.getElementById("headerSfxToggle");
 const headerSfxPanel = document.getElementById("headerSfxPanel");

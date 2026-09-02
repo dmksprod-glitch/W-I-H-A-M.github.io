@@ -187,14 +187,17 @@ function renderGrid(rows, cols) {
                     )
                 ) || [];
 
-            // Objects present in this cell
+            // Objects present in this cell (already-collected ones are left
+            // off the map - they've been picked up, see the "eingesammelt"
+            // tooltip button below and the Cockpit's found-items panel)
             const objectsHere =
                 objects?.filter(obj =>
                     obj.position &&
                     obj.position.type === "place" &&
                     obj.position.targetId === currentPlace &&
                     obj.position.x === c &&
-                    obj.position.y === r
+                    obj.position.y === r &&
+                    !obj.collected
                 ) || [];
 
             // Objects present in this cell
@@ -312,6 +315,23 @@ function renderGrid(rows, cols) {
                     btnObjectItem.appendChild(img);
                     btnObjectItem.appendChild(name);
                     objectItem.appendChild(btnObjectItem);
+
+                    // Mark this object as collected - it disappears from the
+                    // map and shows up in the Cockpit's found-items list.
+                    // Available regardless of edit mode, since this is a
+                    // during-play action, not a scenario-building one.
+                    const collectItem = document.createElement("span");
+                    collectItem.className = "tooltipBtnCollect";
+                    collectItem.innerHTML = '<span class="mdi mdi-bag-personal-plus-outline"></span>';
+                    collectItem.title = t("markCollected");
+                    collectItem.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        obj.collected = true;
+                        loadSelectedPlace(locationSelect.value);
+                        if (typeof renderdivInventoryListRight === "function") renderdivInventoryListRight();
+                        if (typeof renderCockpit === "function") renderCockpit();
+                    });
+                    objectItem.appendChild(collectItem);
 
                     // Remove object position if scenario editing is enabled
                     if (editScenarioEnabled) {
