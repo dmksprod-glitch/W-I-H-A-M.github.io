@@ -116,6 +116,21 @@ async function importScenario(zipContent) {
             playerCharacters = [];
         }
 
+        // Import global situation tracks and global sound effects (missing
+        // files just mean a scenario exported before these features existed)
+        try {
+            const situationTracksData = await zipContent.file("situationtracks.json").async("string");
+            situationTracks = JSON.parse(situationTracksData);
+        } catch {
+            situationTracks = [];
+        }
+        try {
+            const globalSfxData = await zipContent.file("globalsoundeffects.json").async("string");
+            globalSoundEffects = JSON.parse(globalSfxData);
+        } catch {
+            globalSoundEffects = [];
+        }
+
         // Sound effects used to be one global list (soundeffects.json); they
         // now live per-place. If this ZIP predates that, keep the legacy
         // list around so it can be reattached to the default place once
@@ -162,6 +177,8 @@ async function importScenario(zipContent) {
         // Process ambient/effect audio from the 'sounds' folder:
         //   ambient_<placeId>_<trackId>.mp3  - one of a place's ambient tracks
         //   effect_<placeId>_<effectId>.mp3  - one of a place's soundboard effects
+        //   situation_<trackId>.mp3          - a global, place-independent situation track
+        //   globalsfx_<effectId>.mp3         - a global, place-independent sound effect
         // Two older, already-shipped formats are also recognized so nothing
         // gets silently lost on import:
         //   place_<placeId>.mp3  - a place's single legacy ambient track
@@ -193,6 +210,14 @@ async function importScenario(zipContent) {
                             const effectId = parts.slice(2).join("_");
                             const place = places.find(p => p.id === placeId);
                             const effect = place?.soundEffects?.find(e => e.id === effectId);
+                            if (effect) effect.audio = audio;
+                        } else if (type === "situation" && parts.length >= 2) {
+                            const trackId = parts.slice(1).join("_");
+                            const track = situationTracks.find(t => t.id === trackId);
+                            if (track) track.audio = audio;
+                        } else if (type === "globalsfx" && parts.length >= 2) {
+                            const effectId = parts.slice(1).join("_");
+                            const effect = globalSoundEffects.find(e => e.id === effectId);
                             if (effect) effect.audio = audio;
                         } else if (type === "effect") {
                             legacyGlobalEffectAudio[parts[1]] = audio;
@@ -232,7 +257,7 @@ async function importScenario(zipContent) {
         // autosave snapshot itself no longer carries it (see db.js).
         refreshAllScenarioUI();
         if (typeof persistAllAudioAssets === "function") {
-            await persistAllAudioAssets(places);
+            await persistAllAudioAssets(places, situationTracks, globalSoundEffects);
         }
         if (typeof saveScenarioToDB === "function") {
             saveScenarioToDB();

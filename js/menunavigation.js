@@ -223,6 +223,15 @@ function switchMenu(Container, ContainerBtn, exeptBtns) {
     mapContainer.style.display = "none";
     Container.style.display = "block";
 
+    // The Place Editor lets the GM preview ambient tracks/sound effects
+    // directly - silence the live ambient loop there so it doesn't overlap
+    // with the preview, and bring it back everywhere else.
+    if (Container === divPlaceEditor) {
+        if (typeof pauseAmbientForEditor === "function") pauseAmbientForEditor();
+    } else if (typeof resumeAmbientForEditor === "function") {
+        resumeAmbientForEditor();
+    }
+
     allContainerBtn.forEach((btn) => {
         btn.classList = "";
     });

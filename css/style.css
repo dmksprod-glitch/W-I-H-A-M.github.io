@@ -1861,6 +1861,18 @@ button.active {
   font-weight: 600;
 }
 
+.cockpit-place-chip.dragging {
+  opacity: 0.4;
+}
+
+.cockpit-place-chip.drag-over-before {
+  box-shadow: inset 3px 0 0 var(--ui-accent);
+}
+
+.cockpit-place-chip.drag-over-after {
+  box-shadow: inset -3px 0 0 var(--ui-accent);
+}
+
 /* Dashboard grid */
 #cockpitGrid {
   display: grid;
@@ -2312,6 +2324,16 @@ details.cockpit-collapsible .cockpit-plot-text {
   background: rgba(82, 139, 255, 0.12);
 }
 
+.cockpit-sfx-btn-global {
+  border-style: dashed;
+  border-color: var(--ui-gold);
+}
+
+.cockpit-sfx-btn-global:hover {
+  border-color: var(--ui-gold);
+  background: rgba(213, 183, 115, 0.12);
+}
+
 .cockpit-sfx-del {
   color: var(--ui-text-muted);
   font-size: 0.9rem;
@@ -2327,6 +2349,26 @@ details.cockpit-collapsible .cockpit-plot-text {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* Situation music (global, place-independent override tracks) */
+.cockpit-situation-btn {
+  cursor: pointer;
+}
+
+.cockpit-situation-btn .mdi {
+  font-size: 16px;
+  color: var(--ui-text-muted);
+}
+
+.cockpit-situation-btn.active {
+  border-color: var(--ui-gold);
+  background: rgba(213, 183, 115, 0.16);
+  color: var(--ui-gold);
+}
+
+.cockpit-situation-btn.active .mdi {
+  color: var(--ui-gold);
 }
 
 .cockpit-sfx-add input[type="text"] {

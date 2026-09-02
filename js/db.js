@@ -89,10 +89,11 @@ async function loadAllAudioAssets() {
 
 /**
  * Writes every ambient track's / sound effect's audio (across all places)
- * into the audio asset store in one transaction. Used after a bulk change
- * that bypasses the per-upload save path, e.g. a ZIP import.
+ * and every global situation track's / global sound effect's audio into the
+ * audio asset store in one transaction. Used after a bulk change that
+ * bypasses the per-upload save path, e.g. a ZIP import.
  */
-async function persistAllAudioAssets(currentPlaces) {
+async function persistAllAudioAssets(currentPlaces, currentSituationTracks, currentGlobalSoundEffects) {
     const items = [];
     (currentPlaces || []).forEach(place => {
         (place.ambientTracks || []).forEach(track => {
@@ -101,6 +102,12 @@ async function persistAllAudioAssets(currentPlaces) {
         (place.soundEffects || []).forEach(effect => {
             if (effect.audio) items.push([effect.id, effect.audio]);
         });
+    });
+    (currentSituationTracks || []).forEach(track => {
+        if (track.audio) items.push([track.id, track.audio]);
+    });
+    (currentGlobalSoundEffects || []).forEach(effect => {
+        if (effect.audio) items.push([effect.id, effect.audio]);
     });
     if (!items.length) return;
 
@@ -118,10 +125,11 @@ async function persistAllAudioAssets(currentPlaces) {
 /**
  * Re-attaches audio (as base64 data URLs, for compatibility with playback
  * and ZIP export) from the audio asset store onto the in-memory places,
- * whose ambientTracks/soundEffects were loaded without their `audio` field
- * (see stripAudioForAutosave). Runs once at startup.
+ * global situation tracks, and global sound effects, which were loaded
+ * without their `audio` field (see stripAudioForAutosave/stripAudioFromList).
+ * Runs once at startup.
  */
-async function restoreAudioAssetsIntoPlaces(currentPlaces) {
+async function restoreAudioAssets(currentPlaces, currentSituationTracks, currentGlobalSoundEffects) {
     const assetMap = await loadAllAudioAssets();
     if (!assetMap.size) return;
 
@@ -135,6 +143,14 @@ async function restoreAudioAssetsIntoPlaces(currentPlaces) {
             const blob = assetMap.get(effect.id);
             if (blob) conversions.push(blobToDataUrl(blob).then(url => { effect.audio = url; }));
         });
+    });
+    (currentSituationTracks || []).forEach(track => {
+        const blob = assetMap.get(track.id);
+        if (blob) conversions.push(blobToDataUrl(blob).then(url => { track.audio = url; }));
+    });
+    (currentGlobalSoundEffects || []).forEach(effect => {
+        const blob = assetMap.get(effect.id);
+        if (blob) conversions.push(blobToDataUrl(blob).then(url => { effect.audio = url; }));
     });
     await Promise.all(conversions);
 }
@@ -158,10 +174,18 @@ function stripAudioForAutosave(currentPlaces) {
 }
 
 /**
+ * Same as stripAudioForAutosave, but for a flat list of tracks (the global
+ * situationTracks) rather than places' nested lists.
+ */
+function stripAudioFromList(list) {
+    return (list || []).map(({ audio, ...rest }) => rest);
+}
+
+/**
  * Writes the current in-memory scenario into IndexedDB, overwriting the
- * previous autosave. Ambient/effect audio is excluded from this snapshot -
- * it is persisted separately, only when it actually changes - so this stays
- * cheap to clone even with many large audio files loaded.
+ * previous autosave. Ambient/effect/situation audio is excluded from this
+ * snapshot - it is persisted separately, only when it actually changes - so
+ * this stays cheap to clone even with many large audio files loaded.
  */
 async function saveScenarioToDB() {
     try {
@@ -169,7 +193,9 @@ async function saveScenarioToDB() {
         const snapshot = {
             meta, npcs, objects,
             places: stripAudioForAutosave(places),
-            timeline, events, playerCharacters
+            timeline, events, playerCharacters,
+            situationTracks: stripAudioFromList(situationTracks),
+            globalSoundEffects: stripAudioFromList(globalSoundEffects)
         };
         await new Promise((resolve, reject) => {
             const tx = db.transaction(WIHAM_STORE_NAME, "readwrite");
@@ -287,6 +313,8 @@ async function initScenarioFromDB() {
             timeline = saved.timeline || [];
             events = saved.events || [];
             playerCharacters = saved.playerCharacters || [];
+            situationTracks = saved.situationTracks || [];
+            globalSoundEffects = saved.globalSoundEffects || [];
 
             // Sound effects used to be one global list, saved separately.
             // Reattach any leftovers from an older autosave to the default
@@ -301,7 +329,7 @@ async function initScenarioFromDB() {
                 defaultPlace.soundEffects.push(...saved.soundEffects);
             }
 
-            await restoreAudioAssetsIntoPlaces(places);
+            await restoreAudioAssets(places, situationTracks, globalSoundEffects);
         }
     } catch (error) {
         console.error("Could not load autosaved scenario:", error);
@@ -343,6 +371,9 @@ document.getElementById("btnNewScenario").addEventListener("click", async () => 
     events = [];
     playerCharacters = [];
     currentCharacterId = null;
+    situationTracks = [];
+    situationOverrideId = null;
+    globalSoundEffects = [];
 
     await clearScenarioDB();
     location.reload();

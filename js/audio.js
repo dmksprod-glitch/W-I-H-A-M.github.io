@@ -102,19 +102,44 @@ function getActiveAmbientTrack(place) {
     return place.ambientTracks.find(t => t.id === place.activeAmbientTrackId) || place.ambientTracks[0];
 }
 
+// The currently active "situation" override (e.g. combat music), if any -
+// see situationTracks in js/data.js. Not tied to any place; takes priority
+// over whatever ambient track the current place would normally play. Not
+// persisted - like mute/volume, it's live session state.
+let situationOverrideId = null;
+
 /**
- * Crossfades the looping ambient track to the active one configured on the
- * given place (or silence, if it has none). Safe to call repeatedly - it is
- * a no-op if neither the place nor its active track changed since the last
- * call.
+ * Resolves what should actually be looping right now for the given place:
+ * the active situation override if one is set, otherwise that place's own
+ * active ambient track.
+ */
+function getEffectiveAmbientTrack(placeId) {
+    if (situationOverrideId) {
+        const situationTrack = situationTracks.find(t => t.id === situationOverrideId);
+        if (situationTrack) return situationTrack;
+        situationOverrideId = null; // track was deleted - fall back to normal ambient
+    }
+    const place = places.find(p => p.id === placeId);
+    return getActiveAmbientTrack(place);
+}
+
+/**
+ * Crossfades the looping ambient track to whatever should currently be
+ * playing for the given place (its own ambient track, or a situation
+ * override - see getEffectiveAmbientTrack). Safe to call repeatedly - it is
+ * a no-op if the resolved track hasn't actually changed since the last call,
+ * so moving between places while a situation override is active doesn't
+ * restart it.
  */
 function crossfadeAmbientForPlace(placeId) {
-    const place = places.find(p => p.id === placeId);
-    const track = getActiveAmbientTrack(place);
+    const track = getEffectiveAmbientTrack(placeId);
     const trackId = track ? track.id : null;
-
-    if (placeId === ambientPlaceId && trackId === ambientTrackId) return;
     ambientPlaceId = placeId;
+
+    if (trackId === ambientTrackId) {
+        renderSoundUiSafe();
+        return;
+    }
     ambientTrackId = trackId;
 
     const outgoing = ambientSlots[ambientActiveIndex];
@@ -146,7 +171,9 @@ function crossfadeAmbientForPlace(placeId) {
 
 /**
  * Marks a track as the active one for a place. If that place is the
- * currently selected location, crossfades to it immediately.
+ * currently selected location, crossfades to it immediately (unless a
+ * situation override is active, in which case this just updates which
+ * track will resume once the override is cleared).
  */
 function setActiveAmbientTrack(placeId, trackId) {
     const place = places.find(p => p.id === placeId);
@@ -155,11 +182,64 @@ function setActiveAmbientTrack(placeId, trackId) {
     place.activeAmbientTrackId = trackId;
 
     if (typeof locationSelect !== "undefined" && locationSelect.value === placeId) {
-        ambientPlaceId = undefined; // force crossfadeAmbientForPlace to re-evaluate
         crossfadeAmbientForPlace(placeId);
     } else {
         renderSoundUiSafe();
     }
+}
+
+/**
+ * Activates a global situation track (e.g. combat music) as an override,
+ * crossfading to it from whatever is currently playing - regardless of
+ * place. Stays active across location changes until cleared.
+ */
+function setSituationOverride(trackId) {
+    situationOverrideId = trackId;
+    if (typeof locationSelect !== "undefined") {
+        crossfadeAmbientForPlace(locationSelect.value);
+    }
+}
+
+/**
+ * Clears the situation override and crossfades back to the current place's
+ * own ambient track.
+ */
+function clearSituationOverride() {
+    situationOverrideId = null;
+    if (typeof locationSelect !== "undefined") {
+        crossfadeAmbientForPlace(locationSelect.value);
+    }
+}
+
+/**
+ * Adds a newly uploaded situation track to the global (place-independent)
+ * library.
+ */
+function addSituationTrackFromFile(file, name) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const track = {
+            id: generateID(),
+            name: (name && name.trim()) ? name.trim() : file.name.replace(/\.[^/.]+$/, ""),
+            audio: e.target.result
+        };
+        situationTracks.push(track);
+        if (typeof renderCockpitSituationMusic === "function") renderCockpitSituationMusic();
+        if (typeof saveAudioAsset === "function") saveAudioAsset(track.id, track.audio);
+        if (typeof saveScenarioToDB === "function") saveScenarioToDB();
+    };
+    reader.readAsDataURL(file);
+}
+
+function deleteSituationTrack(trackId) {
+    if (situationOverrideId === trackId) {
+        clearSituationOverride();
+    }
+    situationTracks = situationTracks.filter(t => t.id !== trackId);
+    if (typeof renderCockpitSituationMusic === "function") renderCockpitSituationMusic();
+    if (typeof deleteAudioAsset === "function") deleteAudioAsset(trackId);
+    if (typeof saveScenarioToDB === "function") saveScenarioToDB();
 }
 
 function setAmbientVolume(volume) {
@@ -174,6 +254,33 @@ function toggleAmbientMute() {
     ambientMuted = !ambientMuted;
     fadeAudioElement(ambientSlots[ambientActiveIndex], effectiveAmbientVolume(), 300);
     renderSoundUiSafe();
+}
+
+/**
+ * Silences the background ambient loop and stops any playing sound effects
+ * without losing the ambient track's playback position - used while the
+ * Place Editor is open, so previewing an uploaded track/effect there never
+ * overlaps with whatever is already playing for the live session.
+ */
+function pauseAmbientForEditor() {
+    ambientSlots.forEach(slot => {
+        if (!slot.paused) slot.pause();
+    });
+    stopAllSoundEffects();
+}
+
+/**
+ * Resumes the ambient loop from wherever pauseAmbientForEditor left it, once
+ * the GM leaves the Place Editor for any other view. Safe to call even if
+ * nothing was paused (e.g. no ambient track configured yet).
+ */
+function resumeAmbientForEditor() {
+    const activeSlot = ambientSlots[ambientActiveIndex];
+    if (!activeSlot.src || !activeSlot.paused) return;
+    const playPromise = activeSlot.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {});
+    }
 }
 
 /**
@@ -244,6 +351,9 @@ function renderSoundUiSafe() {
     renderHeaderSoundboard();
     renderCockpitAmbientStatus();
     renderCockpitSoundboard();
+    if (typeof renderCockpitSituationMusic === "function") {
+        renderCockpitSituationMusic();
+    }
 }
 
 /**
@@ -320,30 +430,45 @@ function renderSoundboardGridForPlace(gridId, place) {
     if (!grid) return;
 
     grid.innerHTML = "";
-    const effects = place ? (ensurePlaceAmbientMigrated(place), place.soundEffects) : [];
+    const placeEffects = place ? (ensurePlaceAmbientMigrated(place), place.soundEffects) : [];
+    // Global effects are shown on every location's soundboard, ahead of that
+    // place's own effects, so the same commonly-used sounds (dice roll,
+    // applause, ...) don't need to be re-uploaded per place.
+    const effects = [
+        ...globalSoundEffects.map(effect => ({ effect, global: true })),
+        ...placeEffects.map(effect => ({ effect, global: false }))
+    ];
 
     if (!effects.length) {
         grid.innerHTML = `<p class="cockpit-empty">${t("cockpitSfxEmpty")}</p>`;
         return;
     }
 
-    effects.forEach(effect => {
+    effects.forEach(({ effect, global }) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "cockpit-sfx-btn";
+        if (global) {
+            btn.classList.add("cockpit-sfx-btn-global");
+            btn.title = t("cockpitSfxGlobalHint");
+        }
 
         const label = document.createElement("span");
         label.textContent = effect.name;
         btn.appendChild(label);
 
-        if (place) {
+        if (global || place) {
             const del = document.createElement("span");
             del.className = "cockpit-sfx-del";
             del.innerHTML = "&times;";
             del.title = t("delete");
             del.addEventListener("click", (e) => {
                 e.stopPropagation();
-                deleteSoundEffect(place, effect.id);
+                if (global) {
+                    deleteGlobalSoundEffect(effect.id);
+                } else {
+                    deleteSoundEffect(place, effect.id);
+                }
             });
             btn.appendChild(del);
         }
@@ -351,6 +476,40 @@ function renderSoundboardGridForPlace(gridId, place) {
         btn.addEventListener("click", () => playSoundEffect(effect));
         grid.appendChild(btn);
     });
+}
+
+/**
+ * Adds a newly uploaded sound effect to the global (place-independent)
+ * soundboard - it will show up on every location's soundboard grid.
+ */
+function addGlobalSoundEffectFromFile(file, name) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const effect = {
+            id: generateID(),
+            name: (name && name.trim()) ? name.trim() : file.name.replace(/\.[^/.]+$/, ""),
+            audio: e.target.result
+        };
+        globalSoundEffects.push(effect);
+        renderSoundUiSafe();
+        if (typeof renderPlaceSoundboard === "function" && typeof currentEditedPlace !== "undefined" && currentEditedPlace) {
+            renderPlaceSoundboard(currentEditedPlace);
+        }
+        if (typeof saveAudioAsset === "function") saveAudioAsset(effect.id, effect.audio);
+        if (typeof saveScenarioToDB === "function") saveScenarioToDB();
+    };
+    reader.readAsDataURL(file);
+}
+
+function deleteGlobalSoundEffect(effectId) {
+    globalSoundEffects = globalSoundEffects.filter(effect => effect.id !== effectId);
+    renderSoundUiSafe();
+    if (typeof renderPlaceSoundboard === "function" && typeof currentEditedPlace !== "undefined" && currentEditedPlace) {
+        renderPlaceSoundboard(currentEditedPlace);
+    }
+    if (typeof deleteAudioAsset === "function") deleteAudioAsset(effectId);
+    if (typeof saveScenarioToDB === "function") saveScenarioToDB();
 }
 
 /**
@@ -415,3 +574,29 @@ document.addEventListener("click", () => {
 });
 
 headerSfxPanel?.addEventListener("click", (e) => e.stopPropagation());
+
+document.getElementById("btnSituationTrackUpload")?.addEventListener("click", () => {
+    document.getElementById("inputSituationTrackFile")?.click();
+});
+
+document.getElementById("inputSituationTrackFile")?.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const nameInput = document.getElementById("situationTrackName");
+    addSituationTrackFromFile(file, nameInput ? nameInput.value : "");
+    if (nameInput) nameInput.value = "";
+    e.target.value = "";
+});
+
+document.getElementById("btnGlobalSfxUpload")?.addEventListener("click", () => {
+    document.getElementById("inputGlobalSfxFile")?.click();
+});
+
+document.getElementById("inputGlobalSfxFile")?.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const nameInput = document.getElementById("globalSfxName");
+    addGlobalSoundEffectFromFile(file, nameInput ? nameInput.value : "");
+    if (nameInput) nameInput.value = "";
+    e.target.value = "";
+});

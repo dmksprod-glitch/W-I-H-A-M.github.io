@@ -35,11 +35,20 @@ let places = [];
 let timeline = [];
 let events = [];
 let playerCharacters = [];
+// Global "situation" music tracks (e.g. combat music) - unlike a place's own
+// ambientTracks, these aren't tied to any one location: the same track can
+// be triggered as an override from any place. See js/audio.js.
+let situationTracks = [];
+// Global sound effects - like a place's own soundEffects, but shown on every
+// location's soundboard instead of just one, so common effects (dice roll,
+// applause, ...) don't need to be re-uploaded per place. See js/audio.js.
+let globalSoundEffects = [];
 
 /**
  * Generates a new unique ID by scanning all existing IDs across npcs, objects,
  * places (including their per-place ambient tracks and sound effects),
- * timeline, unsavedTimeline, and events. Returns the next available ID.
+ * timeline, unsavedTimeline, events, the global situation tracks, and the
+ * global sound effects. Returns the next available ID.
  */
 function generateID() {
   const allIDs = [
@@ -51,7 +60,9 @@ function generateID() {
     ...timeline.map(tim => parseInt(tim.id, 10)),
     ...unsavedTimeline.map(utim => parseInt(utim.id, 10)),
     ...events.map(utim => parseInt(utim.id, 10)),
-    ...playerCharacters.map(pc => parseInt(pc.id, 10))
+    ...playerCharacters.map(pc => parseInt(pc.id, 10)),
+    ...situationTracks.map(track => parseInt(track.id, 10)),
+    ...globalSoundEffects.map(effect => parseInt(effect.id, 10))
   ].filter(id => !isNaN(id));
 
   const nextID = allIDs.length > 0 ? Math.max(...allIDs) + 1 : 1;

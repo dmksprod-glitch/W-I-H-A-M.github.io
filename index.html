@@ -378,8 +378,30 @@
               </div>
               <div id="cockpitAmbientStatus" class="cockpit-ambient-status"></div>
               <div id="cockpitSfxGrid" class="cockpit-sfx-grid"></div>
+              <div class="cockpit-sfx-add">
+                <input type="text" id="globalSfxName" placeholder="Name des Effekts (z. B. Würfelwurf)" />
+                <button type="button" id="btnGlobalSfxUpload" data-i18n="cockpitAddGlobalSfx">+ Globalen Effekt
+                  hinzufügen</button>
+                <input type="file" id="inputGlobalSfxFile" accept="audio/*" style="display: none;" />
+              </div>
               <div class="cockpit-hint" data-i18n="cockpitSoundHeaderHint">Ambiente-Lautstärke &amp; Auswahl: oben im
                 Header.</div>
+            </section>
+
+            <section class="cockpit-panel">
+              <div class="cockpit-panel-head">
+                <h3 data-i18n="cockpitSituationMusicTitle">Situationsmusik</h3>
+              </div>
+              <div id="cockpitSituationStatus" class="cockpit-ambient-status"></div>
+              <div id="cockpitSituationList" class="cockpit-sfx-grid"></div>
+              <div class="cockpit-sfx-add">
+                <input type="text" id="situationTrackName" placeholder="Name der Situation (z. B. Kampf)" />
+                <button type="button" id="btnSituationTrackUpload" data-i18n="cockpitAddSituationTrack">+ Track
+                  hinzufügen</button>
+                <input type="file" id="inputSituationTrackFile" accept="audio/*" style="display: none;" />
+              </div>
+              <div class="cockpit-hint" data-i18n="cockpitSituationHint">Ortsunabhängig - an jedem Ort auswählbar.
+              </div>
             </section>
 
             <section class="cockpit-panel">

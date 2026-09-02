@@ -83,6 +83,26 @@ function generatePlayerCharactersJSON() {
     }));
 }
 
+// Returns an array of global situation tracks (e.g. combat music), adjusting
+// audio paths for export - place-independent, unlike a place's ambientTracks.
+function generateSituationTracksJSON() {
+    return situationTracks.map(track => ({
+        id: track.id,
+        name: track.name,
+        audio: `sounds/situation_${track.id}.mp3`
+    }));
+}
+
+// Returns an array of global sound effects, adjusting audio paths for
+// export - place-independent, unlike a place's soundEffects.
+function generateGlobalSoundEffectsJSON() {
+    return globalSoundEffects.map(effect => ({
+        id: effect.id,
+        name: effect.name,
+        audio: `sounds/globalsfx_${effect.id}.mp3`
+    }));
+}
+
 // Creates a ZIP archive containing all scenario data and triggers the download
 function exportScenario() {
     const zip = new JSZip();
@@ -103,6 +123,12 @@ function exportScenario() {
 
     const playerCharactersData = generatePlayerCharactersJSON();
     zip.file("playercharacters.json", JSON.stringify(playerCharactersData, null, 2));
+
+    const situationTracksData = generateSituationTracksJSON();
+    zip.file("situationtracks.json", JSON.stringify(situationTracksData, null, 2));
+
+    const globalSoundEffectsData = generateGlobalSoundEffectsJSON();
+    zip.file("globalsoundeffects.json", JSON.stringify(globalSoundEffectsData, null, 2));
 
     const metaObj = { ...meta };
     zip.file("meta.json", JSON.stringify(metaObj, null, 2));
@@ -155,6 +181,20 @@ function exportScenario() {
                 soundsFolder.file(`effect_${place.id}_${effect.id}.mp3`, base64Data, { base64: true });
             }
         });
+    });
+
+    situationTracks.forEach(track => {
+        if (track.audio) {
+            const base64Data = track.audio.split(",")[1];
+            soundsFolder.file(`situation_${track.id}.mp3`, base64Data, { base64: true });
+        }
+    });
+
+    globalSoundEffects.forEach(effect => {
+        if (effect.audio) {
+            const base64Data = effect.audio.split(",")[1];
+            soundsFolder.file(`globalsfx_${effect.id}.mp3`, base64Data, { base64: true });
+        }
     });
 
     zip.generateAsync({ type: "blob" }).then(content => {

@@ -215,7 +215,9 @@ function renderCockpitTimeline() {
 /**
  * Renders a row of location chips - one per place - so the GM can jump
  * straight to any location without leaving the Cockpit. The active place
- * (the one currently selected in the header) is highlighted.
+ * (the one currently selected in the header) is highlighted. Chips can be
+ * dragged to reorder places - see enableCockpitPlaceChipDrag below - since
+ * that order also drives the header's location dropdown.
  */
 function renderCockpitPlaceChips() {
     const container = document.getElementById("cockpitPlaceChips");
@@ -225,7 +227,10 @@ function renderCockpitPlaceChips() {
     places.forEach(place => {
         const chip = document.createElement("button");
         chip.type = "button";
-        chip.className = "cockpit-place-chip";
+        chip.className = "cockpit-place-chip draggable";
+        chip.draggable = true;
+        chip.dataset.placeId = place.id;
+        chip.title = t("cockpitPlaceChipsHint");
         if (place.id === locationSelect.value) chip.classList.add("active");
         chip.textContent = place.name || "(Unbenannt)";
         chip.addEventListener("click", () => {
@@ -234,6 +239,70 @@ function renderCockpitPlaceChips() {
             locationChanged();
         });
         container.appendChild(chip);
+    });
+
+    enableCockpitPlaceChipDrag(container);
+}
+
+/**
+ * Lets the GM drag place chips into a new order. Reorders the shared
+ * `places` array directly (splice out, splice back in), so the change also
+ * reorders the header's location dropdown - there is no separate "cockpit
+ * order" to keep in sync.
+ */
+function enableCockpitPlaceChipDrag(container) {
+    let draggingId = null;
+
+    container.querySelectorAll(".cockpit-place-chip").forEach(chip => {
+        chip.addEventListener("dragstart", (e) => {
+            draggingId = chip.dataset.placeId;
+            e.dataTransfer.setData("text/plain", draggingId);
+            e.dataTransfer.effectAllowed = "move";
+            chip.classList.add("dragging");
+        });
+
+        chip.addEventListener("dragend", () => {
+            chip.classList.remove("dragging");
+            container.querySelectorAll(".cockpit-place-chip").forEach(c =>
+                c.classList.remove("drag-over-before", "drag-over-after")
+            );
+            draggingId = null;
+        });
+
+        chip.addEventListener("dragover", (e) => {
+            if (!draggingId || draggingId === chip.dataset.placeId) return;
+            e.preventDefault();
+            const rect = chip.getBoundingClientRect();
+            const before = e.clientX < rect.left + rect.width / 2;
+            chip.classList.toggle("drag-over-before", before);
+            chip.classList.toggle("drag-over-after", !before);
+        });
+
+        chip.addEventListener("dragleave", () => {
+            chip.classList.remove("drag-over-before", "drag-over-after");
+        });
+
+        chip.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const targetId = chip.dataset.placeId;
+            chip.classList.remove("drag-over-before", "drag-over-after");
+            if (!draggingId || draggingId === targetId) return;
+
+            const fromIndex = places.findIndex(p => p.id === draggingId);
+            if (fromIndex === -1) return;
+
+            const rect = chip.getBoundingClientRect();
+            const insertBefore = e.clientX < rect.left + rect.width / 2;
+
+            const [movedPlace] = places.splice(fromIndex, 1);
+            let targetIndex = places.findIndex(p => p.id === targetId);
+            if (!insertBefore) targetIndex++;
+            places.splice(targetIndex, 0, movedPlace);
+
+            renderCockpitPlaceChips();
+            if (typeof refreshLocationSelectOrder === "function") refreshLocationSelectOrder();
+            if (typeof saveScenarioToDB === "function") saveScenarioToDB();
+        });
     });
 }
 
@@ -331,6 +400,66 @@ function renderCockpitFoundItems() {
         row.appendChild(undoBtn);
 
         list.appendChild(row);
+    });
+}
+
+/**
+ * Renders the global "situation music" library (e.g. combat music) and
+ * which one, if any, is currently overriding the place's own ambience.
+ * Place-independent - the same tracks are offered from any location.
+ */
+function renderCockpitSituationMusic() {
+    const statusEl = document.getElementById("cockpitSituationStatus");
+    const listEl = document.getElementById("cockpitSituationList");
+    if (!listEl) return;
+
+    const activeTrack = situationOverrideId ? situationTracks.find(t => t.id === situationOverrideId) : null;
+    if (statusEl) {
+        statusEl.textContent = activeTrack
+            ? `${t("cockpitSituationActive")}: ${activeTrack.name}`
+            : t("cockpitSituationNone");
+    }
+
+    listEl.innerHTML = "";
+    if (!situationTracks.length) {
+        listEl.innerHTML = `<p class="cockpit-empty">${t("cockpitSituationEmpty")}</p>`;
+        return;
+    }
+
+    situationTracks.forEach(track => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "cockpit-sfx-btn cockpit-situation-btn";
+        if (track.id === situationOverrideId) btn.classList.add("active");
+        btn.title = track.id === situationOverrideId ? t("cockpitSituationStop") : t("cockpitSituationPlay");
+
+        const icon = document.createElement("span");
+        icon.className = "mdi " + (track.id === situationOverrideId ? "mdi-stop-circle-outline" : "mdi-play-circle-outline");
+        btn.appendChild(icon);
+
+        const label = document.createElement("span");
+        label.textContent = track.name;
+        btn.appendChild(label);
+
+        const del = document.createElement("span");
+        del.className = "cockpit-sfx-del";
+        del.innerHTML = "&times;";
+        del.title = t("delete");
+        del.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteSituationTrack(track.id);
+        });
+        btn.appendChild(del);
+
+        btn.addEventListener("click", () => {
+            if (track.id === situationOverrideId) {
+                clearSituationOverride();
+            } else {
+                setSituationOverride(track.id);
+            }
+        });
+
+        listEl.appendChild(btn);
     });
 }
 

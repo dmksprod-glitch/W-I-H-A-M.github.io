@@ -113,6 +113,28 @@ function populateLocationSelect() {
 }
 
 /**
+ * Rebuilds the location dropdown's options to match the current order of
+ * `places`, without touching which place is currently selected. Used after
+ * reordering places (e.g. by dragging Cockpit chips) - unlike
+ * populateLocationSelect, which always jumps to the first place.
+ */
+function refreshLocationSelectOrder() {
+    const currentValue = locationSelect.value;
+    locationSelect.innerHTML = "";
+    places.forEach((place) => {
+        const option = document.createElement("option");
+        option.value = place.id;
+        option.textContent = place.name || "(Unnamed Place)";
+        locationSelect.appendChild(option);
+    });
+    if (places.some(p => p.id === currentValue)) {
+        locationSelect.value = currentValue;
+    } else if (places.length > 0) {
+        locationSelect.value = places[0].id;
+    }
+}
+
+/**
  * Updates NPC and object lists when the location or timeline index changes.
  */
 function updateDynamicLists() {
