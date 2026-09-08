@@ -158,6 +158,9 @@
         <span class="mdi mdi-book-open-page-variant-outline"></span>
         <span data-i18n="rulesHelp">Regeln</span>
       </button>
+      <button type="button" class="cockpit-icon-btn" id="btnToggleInfoSidebar" title="Rechte Spalte ein-/ausblenden">
+        <span class="mdi mdi-page-layout-sidebar-right"></span>
+      </button>
       <span id="notificationBell" class="bell mdi mdi-bell">
         <span id="notificationCount" class="count">0</span>
       </span>
@@ -297,7 +300,6 @@
               <span data-i18n="rulesHelp">Regeln</span>
             </button>
           </h2>
-          <p data-i18n="cockpitIntro">Alles Wichtige zum aktuellen Ort und Zeitpunkt auf einen Blick.</p>
         </div>
 
         <div id="cockpitTimelineCard">
@@ -307,6 +309,12 @@
 
         <div id="cockpitPlaceChips" class="cockpit-place-chips"></div>
 
+        <!-- Three columns, ranked by how often a GM's eyes need them mid-session:
+             1) Right now (map/place/NPCs/objects) - always the biggest.
+             2) Control deck (characters, sound & music) - quick actions.
+             3) Reference (log/upcoming/whereis/found/notes/plot) - tabbed
+                into one panel instead of six stacked ones, so looking
+                something up doesn't cost a wall of scrolling. -->
         <div id="cockpitGrid">
           <div id="cockpitColMain">
             <section class="cockpit-panel cockpit-map-panel">
@@ -334,34 +342,9 @@
                 </div>
               </div>
             </section>
-
-            <section class="cockpit-panel">
-              <div class="cockpit-panel-head">
-                <h3 data-i18n="cockpitLogTitle">Ereignis-Log</h3>
-                <span class="cockpit-chip" id="cockpitLogCount"></span>
-              </div>
-              <ul id="cockpitLogList" class="cockpit-log-list"></ul>
-            </section>
-
-            <section class="cockpit-panel">
-              <div class="cockpit-panel-head">
-                <h3 data-i18n="cockpitUpcomingTitle">Bevorstehende Events</h3>
-              </div>
-              <div id="cockpitUpcomingList" class="cockpit-upcoming-list"></div>
-            </section>
-
-            <section class="cockpit-panel">
-              <div class="cockpit-panel-head">
-                <h3 data-i18n="cockpitNotesTitle">SL-Notizen zu diesem Zeitpunkt</h3>
-              </div>
-              <textarea id="cockpitNotes"
-                placeholder="Was ist hier gerade wichtig? Was haben die Spieler übersehen?"></textarea>
-              <div class="cockpit-hint" data-i18n="cockpitNotesHint">Nur für diese Sitzung gespeichert, nicht Teil
-                des Exports.</div>
-            </section>
           </div>
 
-          <div id="cockpitColSide">
+          <div id="cockpitColControl">
             <section class="cockpit-panel">
               <div class="cockpit-panel-head">
                 <h3 data-i18n="characters">Charaktere</h3>
@@ -373,26 +356,14 @@
 
             <section class="cockpit-panel">
               <div class="cockpit-panel-head">
-                <h3 data-i18n="cockpitSoundTitle">Sound</h3>
+                <h3 data-i18n="cockpitSoundTitle">Sound &amp; Musik</h3>
                 <button type="button" id="cockpitStopSfx" class="cockpit-chip-btn" data-i18n="cockpitStopSfx">Stoppen</button>
               </div>
               <div id="cockpitAmbientStatus" class="cockpit-ambient-status"></div>
-              <div id="cockpitSfxGrid" class="cockpit-sfx-grid"></div>
-              <div class="cockpit-sfx-add">
-                <input type="text" id="globalSfxName" placeholder="Name des Effekts (z. B. Würfelwurf)" />
-                <button type="button" id="btnGlobalSfxUpload" data-i18n="cockpitAddGlobalSfx">+ Globalen Effekt
-                  hinzufügen</button>
-                <input type="file" id="inputGlobalSfxFile" accept="audio/*" style="display: none;" />
-              </div>
-              <div class="cockpit-hint" data-i18n="cockpitSoundHeaderHint">Ambiente-Lautstärke &amp; Auswahl: oben im
-                Header.</div>
-            </section>
-
-            <section class="cockpit-panel">
-              <div class="cockpit-panel-head">
-                <h3 data-i18n="cockpitSituationMusicTitle">Situationsmusik</h3>
-              </div>
               <div id="cockpitSituationStatus" class="cockpit-ambient-status"></div>
+
+              <div class="cockpit-eyebrow cockpit-sound-subhead" data-i18n="cockpitSituationMusicTitle">Situationsmusik
+              </div>
               <div id="cockpitSituationList" class="cockpit-sfx-grid"></div>
               <div class="cockpit-sfx-add">
                 <input type="text" id="situationTrackName" placeholder="Name der Situation (z. B. Kampf)" />
@@ -400,29 +371,69 @@
                   hinzufügen</button>
                 <input type="file" id="inputSituationTrackFile" accept="audio/*" style="display: none;" />
               </div>
-              <div class="cockpit-hint" data-i18n="cockpitSituationHint">Ortsunabhängig - an jedem Ort auswählbar.
+
+              <div class="cockpit-eyebrow cockpit-sound-subhead" data-i18n="cockpitSfxTitle">Soundeffekte</div>
+              <div id="cockpitSfxGrid" class="cockpit-sfx-grid"></div>
+              <div class="cockpit-sfx-add">
+                <input type="text" id="globalSfxName" placeholder="Name des Effekts (z. B. Würfelwurf)" />
+                <button type="button" id="btnGlobalSfxUpload" data-i18n="cockpitAddGlobalSfx">+ Globalen Effekt
+                  hinzufügen</button>
+                <input type="file" id="inputGlobalSfxFile" accept="audio/*" style="display: none;" />
+              </div>
+
+              <div class="cockpit-hint" data-i18n="cockpitSoundHeaderHint">Ambiente-Lautstärke &amp; Auswahl: oben im
+                Header.</div>
+            </section>
+          </div>
+
+          <div id="cockpitColRef">
+            <section class="cockpit-panel cockpit-ref-panel">
+              <div class="cockpit-ref-tabs" role="tablist">
+                <button type="button" class="cockpit-ref-tab active" data-ref-tab="log">
+                  <span data-i18n="cockpitTabLog">Log</span>
+                  <span class="cockpit-chip" id="cockpitLogCount"></span>
+                </button>
+                <button type="button" class="cockpit-ref-tab" data-ref-tab="upcoming">
+                  <span data-i18n="cockpitTabUpcoming">Kommend</span>
+                  <span class="cockpit-chip" id="cockpitUpcomingCount"></span>
+                </button>
+                <button type="button" class="cockpit-ref-tab" data-ref-tab="whereis">
+                  <span data-i18n="cockpitTabWhereis">Wo ist wer</span>
+                </button>
+                <button type="button" class="cockpit-ref-tab" data-ref-tab="found">
+                  <span data-i18n="cockpitTabFound">Gefunden</span>
+                  <span class="cockpit-chip" id="cockpitFoundItemsCount"></span>
+                </button>
+                <button type="button" class="cockpit-ref-tab" data-ref-tab="notes">
+                  <span data-i18n="cockpitTabNotes">Notizen</span>
+                </button>
+                <button type="button" class="cockpit-ref-tab" data-ref-tab="plot">
+                  <span data-i18n="cockpitTabPlot">Handlung</span>
+                </button>
+              </div>
+
+              <div class="cockpit-ref-content" data-ref-content="log">
+                <ul id="cockpitLogList" class="cockpit-log-list"></ul>
+              </div>
+              <div class="cockpit-ref-content" data-ref-content="upcoming" hidden>
+                <div id="cockpitUpcomingList" class="cockpit-upcoming-list"></div>
+              </div>
+              <div class="cockpit-ref-content" data-ref-content="whereis" hidden>
+                <div id="cockpitWhereisList" class="cockpit-whereis-list"></div>
+              </div>
+              <div class="cockpit-ref-content" data-ref-content="found" hidden>
+                <div id="cockpitFoundItemsList" class="cockpit-found-items-list"></div>
+              </div>
+              <div class="cockpit-ref-content" data-ref-content="notes" hidden>
+                <textarea id="cockpitNotes"
+                  placeholder="Was ist hier gerade wichtig? Was haben die Spieler übersehen?"></textarea>
+                <div class="cockpit-hint" data-i18n="cockpitNotesHint">Nur für diese Sitzung gespeichert, nicht Teil
+                  des Exports.</div>
+              </div>
+              <div class="cockpit-ref-content" data-ref-content="plot" hidden>
+                <div id="cockpitPlotText" class="cockpit-plot-text"></div>
               </div>
             </section>
-
-            <section class="cockpit-panel">
-              <div class="cockpit-panel-head">
-                <h3 data-i18n="cockpitFoundItemsTitle">Gefundene Gegenstände</h3>
-                <span class="cockpit-chip" id="cockpitFoundItemsCount"></span>
-              </div>
-              <div id="cockpitFoundItemsList" class="cockpit-found-items-list"></div>
-            </section>
-
-            <section class="cockpit-panel">
-              <div class="cockpit-panel-head">
-                <h3 data-i18n="cockpitWhereisTitle">Wo ist wer</h3>
-              </div>
-              <div id="cockpitWhereisList" class="cockpit-whereis-list"></div>
-            </section>
-
-            <details class="cockpit-panel cockpit-collapsible">
-              <summary data-i18n="plot">Handlung</summary>
-              <div id="cockpitPlotText" class="cockpit-plot-text"></div>
-            </details>
           </div>
         </div>
       </div>
@@ -606,8 +617,10 @@
         <div class="editor-field">
           <label data-i18n="name" for="placeName">Name:</label>
           <input type="text" id="placeName" />
-          <label data-i18n="startPlace" for="startPlace">Name:</label>
+        </div>
+        <div class="editor-field editor-field-checkbox">
           <input type="checkbox" id="startPlace" />
+          <label data-i18n="startPlace" for="startPlace">Abenteuer hier starten</label>
         </div>
         <div class="editor-field">
           <label data-i18n="description" for="eventDescription">Beschreibung:</label>

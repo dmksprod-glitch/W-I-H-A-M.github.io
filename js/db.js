@@ -339,6 +339,10 @@ async function initScenarioFromDB() {
     lastSavedAt = new Date();
     renderDbStatus();
     startAutosaveLoop();
+
+    // The Cockpit is the GM's one-stop-shop - land there on every fresh
+    // page load instead of the plain Scenario map view.
+    btnCockpit.click();
 }
 
 document.addEventListener("visibilitychange", () => {

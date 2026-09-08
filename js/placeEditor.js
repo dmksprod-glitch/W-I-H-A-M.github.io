@@ -180,6 +180,7 @@ btnPlaceSave.addEventListener("click", () => {
     savePlaceFromEditor();
     renderdivplaceListRight();
     populateLocationSelect();
+    saveScenarioToDB();
     console.log("Ort gespeichert:", currentEditedPlace);
     showNotification({
       type: "success",
@@ -322,6 +323,24 @@ function renderdivplaceListRight() {
     });
     divplaceListRight.appendChild(card);
   });
+}
+
+/**
+ * Loads the given place into the editor and highlights its card in the
+ * right-hand list, exactly as if the GM had clicked it. Used to auto-select
+ * the currently active Cockpit place when opening the Welt Editor, so the
+ * editor's fields always match what's actually loaded into
+ * `currentEditedPlace` - previously the form could visually resemble the
+ * active place without `currentEditedPlace` actually pointing at it, so
+ * "Speichern" silently edited the wrong place.
+ */
+function selectPlaceInEditor(placeId) {
+  const index = places.findIndex(p => p.id === placeId);
+  if (index === -1) return;
+  currentEditedPlace = places[index];
+  loadPlaceIntoEditor(currentEditedPlace);
+  const card = divplaceListRight.children[index];
+  if (card) highlightSelectedItemCard(card);
 }
 
 /**

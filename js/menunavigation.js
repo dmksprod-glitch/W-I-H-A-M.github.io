@@ -142,6 +142,9 @@ btnTimeline.addEventListener("click", () => {
 btnWorld.addEventListener("click", () => {
     const exeptBtns = [tabBtnPlaceEditor];
     switchMenu(divPlaceEditor, btnWorld, exeptBtns);
+    if (typeof selectPlaceInEditor === "function" && typeof locationSelect !== "undefined") {
+        selectPlaceInEditor(locationSelect.value);
+    }
 });
 
 /**

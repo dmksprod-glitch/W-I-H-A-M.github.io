@@ -2,6 +2,9 @@
 const toggleSidebarButton = document.getElementById("toggleSidebar");
 const sidebar = document.getElementById("sidebar");
 const toggleAllSidebarMenuBtnTxt = document.querySelectorAll("#sidebarMenuBtnTxt");
+const infoSidebar = document.getElementById("infoSidebar");
+const btnToggleInfoSidebar = document.getElementById("btnToggleInfoSidebar");
+const INFO_SIDEBAR_HIDDEN_KEY = "wiham_info_sidebar_hidden";
 
 // Real-time and page-timer elements
 const realTimeElement = document.getElementById("realTime");
@@ -22,6 +25,29 @@ toggleSidebarButton.addEventListener("click", () => {
     });
     loadSelectedPlace(locationSelect.value);
 });
+
+/**
+ * Shows/hides the right-hand info sidebar (Ausgewählt/NPCs/Objekte/
+ * Inventar). Hiding it lets #mainContent (the Cockpit, the map, ...) use
+ * the freed-up width instead. Remembered across reloads.
+ */
+function setInfoSidebarHidden(hide) {
+    infoSidebar.classList.toggle("hidden", hide);
+    btnToggleInfoSidebar.classList.toggle("muted", hide);
+    localStorage.setItem(INFO_SIDEBAR_HIDDEN_KEY, hide ? "1" : "0");
+    loadSelectedPlace(locationSelect.value);
+}
+
+btnToggleInfoSidebar.addEventListener("click", () => {
+    setInfoSidebarHidden(!infoSidebar.classList.contains("hidden"));
+});
+
+// Restore the remembered state on load. No place is loaded yet at this
+// point, so this only sets the visual state - unlike setInfoSidebarHidden,
+// it skips resizing the map (loadSelectedPlace runs once real places do).
+const infoSidebarStartsHidden = localStorage.getItem(INFO_SIDEBAR_HIDDEN_KEY) === "1";
+infoSidebar.classList.toggle("hidden", infoSidebarStartsHidden);
+btnToggleInfoSidebar.classList.toggle("muted", infoSidebarStartsHidden);
 
 // Spoiler text toggle
 document.addEventListener("click", (event) => {
@@ -92,10 +118,12 @@ function locationChanged() {
 }
 
 /**
- * Populates the location dropdown with all places.
- * Selects the first place by default if available.
+ * Populates the location dropdown with all places. Keeps the previously
+ * selected place if it still exists; otherwise falls back to the place
+ * marked as start location ("Abenteuer hier starten"), or the first place.
  */
 function populateLocationSelect() {
+    const previousValue = locationSelect.value;
     locationSelect.innerHTML = "";
     places.forEach((place) => {
         const option = document.createElement("option");
@@ -104,10 +132,13 @@ function populateLocationSelect() {
         locationSelect.appendChild(option);
     });
     if (places.length > 0) {
-        locationSelect.value = places[0].id;
-        loadSelectedPlace(places[0].id);
+        const stillExists = places.some(place => place.id === previousValue);
+        const defaultPlace = places.find(place => place.default === true) || places[0];
+        const targetId = stillExists ? previousValue : defaultPlace.id;
+        locationSelect.value = targetId;
+        loadSelectedPlace(targetId);
         if (typeof crossfadeAmbientForPlace === "function") {
-            crossfadeAmbientForPlace(places[0].id);
+            crossfadeAmbientForPlace(targetId);
         }
     }
 }

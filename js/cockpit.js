@@ -519,8 +519,10 @@ function renderCockpitUpcoming() {
     list.innerHTML = "";
 
     const pending = events.filter(ev => !cockpitLoggedEventIds.has(ev.id) && ev.conditions && ev.conditions.length);
+    const countEl = document.getElementById("cockpitUpcomingCount");
     if (!pending.length) {
         list.innerHTML = `<p class="cockpit-empty">${t("cockpitUpcomingEmpty")}</p>`;
+        if (countEl) countEl.textContent = "";
         return;
     }
 
@@ -530,6 +532,11 @@ function renderCockpitUpcoming() {
         const met = groups.filter(g => g.met).length;
         return { ev, groups, met, total: groups.length };
     }).sort((a, b) => (b.total ? b.met / b.total : 0) - (a.total ? a.met / a.total : 0));
+
+    if (countEl) {
+        const readyCount = scored.filter(({ met, total }) => total > 0 && met === total).length;
+        countEl.textContent = readyCount > 0 ? `${readyCount} ${t("cockpitUpcomingReady")}` : "";
+    }
 
     scored.forEach(({ ev, groups, met, total }) => {
         const ready = total > 0 && met === total;
@@ -641,3 +648,21 @@ function renderCockpitNotes() {
         cockpitNotesByTime[key] = textarea.value;
     };
 }
+
+/********************************************************************************
+ * Reference tabs: the Log/Kommend/Wo ist wer/Gefunden/Notizen/Handlung panels
+ * share one card and show one at a time, so checking any of them doesn't
+ * cost a wall of scrolling. Elements are static in index.html, so this can
+ * wire up once at script load - no re-rendering involved, just show/hide.
+ ********************************************************************************/
+document.querySelectorAll(".cockpit-ref-tab").forEach(tabBtn => {
+    tabBtn.addEventListener("click", () => {
+        const target = tabBtn.dataset.refTab;
+        document.querySelectorAll(".cockpit-ref-tab").forEach(btn => {
+            btn.classList.toggle("active", btn === tabBtn);
+        });
+        document.querySelectorAll(".cockpit-ref-content").forEach(content => {
+            content.hidden = content.dataset.refContent !== target;
+        });
+    });
+});
