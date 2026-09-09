@@ -37,6 +37,23 @@ placeDescriptionEditor.getModule('toolbar').addHandler('itemLink', () => {
   openItemLinkModal(placeDescriptionEditor);
 });
 
+const placeSecondVisitEditor = new Quill('#placeSecondVisit', {
+  theme: 'snow',
+  modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link', 'blockquote'],
+      [{ 'spoiler': true }],
+      ['itemLink']
+    ]
+  }
+});
+
+placeSecondVisitEditor.getModule('toolbar').addHandler('itemLink', () => {
+  openItemLinkModal(placeSecondVisitEditor);
+});
+
 let currentPlace = null;
 let currentEditedPlace = null;
 
@@ -124,6 +141,7 @@ btnNewPlace.addEventListener("click", () => {
     id: generateID(),
     name: "N/N",
     description: "",
+    secondVisitDescription: "",
     background: "assets/default_place.png",
     ambientTracks: [],
     activeAmbientTrackId: null,
@@ -239,6 +257,7 @@ function loadPlaceIntoEditor(place) {
   colorPlace.value = place.color || getRandomColor();
   
   placeDescriptionEditor.root.innerHTML = currentEditedPlace.description;
+  placeSecondVisitEditor.root.innerHTML = place.secondVisitDescription || "";
   if (!place.fogOfWar) {
     place.fogOfWar = {
       enabled: true,
@@ -282,6 +301,7 @@ function savePlaceFromEditor() {
   currentEditedPlace.gridSize.cols = parseInt(document.getElementById("placeGridSizeCols").value, 10);
   currentEditedPlace.default = document.getElementById("startPlace").checked;
   currentEditedPlace.description = placeDescriptionEditor.root.innerHTML;
+  currentEditedPlace.secondVisitDescription = placeSecondVisitEditor.root.innerHTML;
   currentEditedPlace.color = colorPlace.value;
   if (!currentEditedPlace.fogOfWar) {
     currentEditedPlace.fogOfWar = {
@@ -354,6 +374,7 @@ function clearPlaceEditorFields() {
   document.getElementById("startPlace").checked = false;
   document.getElementById("placeDescription").value = "";
   placeDescriptionEditor.root.innerHTML = ""
+  placeSecondVisitEditor.root.innerHTML = ""
 
   if (imgPlaceImagePreview) {
     imgPlaceImagePreview.src = "";

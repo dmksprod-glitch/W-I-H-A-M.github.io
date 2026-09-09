@@ -321,7 +321,14 @@
               <div class="cockpit-panel-head">
                 <div>
                   <h3 id="cockpitNowPlaceName" class="cockpit-now-place"></h3>
+                  <div class="cockpit-now-desc-tabs" id="cockpitNowDescTabs">
+                    <button type="button" id="cockpitNowDescTabMain" class="cockpit-now-desc-tab active"
+                      data-i18n="cockpitTabDescription">Beschreibung</button>
+                    <button type="button" id="cockpitNowDescTabSecond" class="cockpit-now-desc-tab"
+                      data-i18n="cockpitTabSecondVisit" hidden>Zweiter Besuch</button>
+                  </div>
                   <p id="cockpitNowPlaceDesc" class="cockpit-now-desc"></p>
+                  <button type="button" id="cockpitNowDescToggle" class="cockpit-now-desc-toggle" hidden></button>
                 </div>
                 <span class="cockpit-chip" id="cockpitNowTimeChip"></span>
               </div>
@@ -625,6 +632,12 @@
         <div class="editor-field">
           <label data-i18n="description" for="eventDescription">Beschreibung:</label>
           <div id="placeDescription" class="quill-editor" rows="4"></div>
+        </div>
+        <div class="editor-field">
+          <label data-i18n="placeSecondVisit" for="placeSecondVisit">Zweiter Besuch (optional):</label>
+          <div id="placeSecondVisit" class="quill-editor" rows="4"></div>
+          <div class="cockpit-hint" data-i18n="placeSecondVisitHint">Zusatzinfos, die die Gruppe erst bei einem
+            erneuten Besuch dieses Ortes findet.</div>
         </div>
         <div class="editor-field">
           <label data-i18n="background" for="placeBackground">Hintergrundbild:</label>

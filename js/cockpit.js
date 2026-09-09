@@ -306,6 +306,13 @@ function enableCockpitPlaceChipDrag(container) {
     });
 }
 
+// Which of the panel-head text tabs is active ("main" or "second"), and
+// which place it was last chosen for - switching place resets the tab to
+// "main", but stepping through time on the same place keeps it, so a GM
+// mid-read of a second-visit note doesn't get bounced back by a time tick.
+let cockpitNowDescTab = "main";
+let cockpitNowDescTabPlaceId = null;
+
 /**
  * Renders "Jetzt am Tisch": current place plus present NPCs and objects.
  */
@@ -314,14 +321,47 @@ function renderCockpitNow() {
     const place = places.find(p => p.id === placeId);
     const time = timeline[currentIndex];
 
+    if (placeId !== cockpitNowDescTabPlaceId) {
+        cockpitNowDescTab = "main";
+        cockpitNowDescTabPlaceId = placeId;
+    }
+
     const timeChip = document.getElementById("cockpitNowTimeChip");
     if (timeChip) timeChip.textContent = time ? `#${time.order} · ${time.title}` : "—";
 
     const nameEl = document.getElementById("cockpitNowPlaceName");
     if (nameEl) nameEl.textContent = place ? (place.name || "(Unbenannt)") : t("cockpitNoPlace");
 
+    const mainHtml = place?.description || "";
+    const secondHtml = place?.secondVisitDescription || "";
+    const hasSecondContent = secondHtml.replace(/<[^>]*>/g, "").trim().length > 0;
+    if (!hasSecondContent) cockpitNowDescTab = "main";
+
+    const tabMain = document.getElementById("cockpitNowDescTabMain");
+    const tabSecond = document.getElementById("cockpitNowDescTabSecond");
+    if (tabMain && tabSecond) {
+        tabSecond.hidden = !hasSecondContent;
+        tabMain.classList.toggle("active", cockpitNowDescTab === "main");
+        tabSecond.classList.toggle("active", cockpitNowDescTab === "second");
+    }
+
     const descEl = document.getElementById("cockpitNowPlaceDesc");
-    if (descEl) descEl.innerHTML = place?.description || "";
+    const descToggle = document.getElementById("cockpitNowDescToggle");
+    if (descEl) {
+        descEl.innerHTML = cockpitNowDescTab === "second" ? secondHtml : mainHtml;
+        descEl.classList.remove("expanded");
+        if (descToggle) {
+            descToggle.hidden = true;
+            // Clamping only takes effect after layout, so overflow can't be
+            // measured until the next frame - otherwise every render would
+            // see the pre-clamp (full) height and never show the toggle.
+            requestAnimationFrame(() => {
+                const overflowing = descEl.scrollHeight > descEl.clientHeight + 1;
+                descToggle.hidden = !overflowing;
+                descToggle.textContent = t("cockpitDescShowMore");
+            });
+        }
+    }
 
     const npcListEl = document.getElementById("cockpitNpcList");
     if (npcListEl) {
@@ -332,7 +372,12 @@ function renderCockpitNow() {
         if (!presentNpcs.length) {
             npcListEl.innerHTML = `<p class="cockpit-empty">${t("cockpitNoNpcsHere")}</p>`;
         } else {
-            presentNpcs.forEach(npc => npcListEl.appendChild(renderItemCard(npc, "npc")));
+            presentNpcs.forEach(npc => {
+                const card = renderItemCard(npc, "npc");
+                card.classList.add("cockpit-npc-card");
+                card.addEventListener("click", () => openNpcInfoModal(npc));
+                npcListEl.appendChild(card);
+            });
         }
     }
 
@@ -666,3 +711,141 @@ document.querySelectorAll(".cockpit-ref-tab").forEach(tabBtn => {
         });
     });
 });
+
+/**
+ * Expands/collapses the clamped place description in "Jetzt am Tisch".
+ * Wired once - renderCockpitNow() only ever toggles the "expanded" class
+ * and the toggle's hidden/text state, it doesn't touch this listener.
+ */
+document.getElementById("cockpitNowDescToggle")?.addEventListener("click", () => {
+    const descEl = document.getElementById("cockpitNowPlaceDesc");
+    const toggle = document.getElementById("cockpitNowDescToggle");
+    if (!descEl || !toggle) return;
+    const expanded = descEl.classList.toggle("expanded");
+    toggle.textContent = expanded ? t("cockpitDescShowLess") : t("cockpitDescShowMore");
+});
+
+/**
+ * Switches "Jetzt am Tisch" between the normal description and the
+ * second-visit note. Both live in the same #cockpitNowPlaceDesc element -
+ * renderCockpitNow() reads cockpitNowDescTab to decide which HTML to show,
+ * so a click here just sets that and re-renders.
+ */
+document.getElementById("cockpitNowDescTabMain")?.addEventListener("click", () => {
+    cockpitNowDescTab = "main";
+    renderCockpitNow();
+});
+document.getElementById("cockpitNowDescTabSecond")?.addEventListener("click", () => {
+    cockpitNowDescTab = "second";
+    renderCockpitNow();
+});
+
+/********************************************************************************
+ * NPC info popup: clicking an NPC card in "NPCs hier" opens a read-only
+ * summary (portrait, profession, HP, appearance, description) without
+ * leaving the Cockpit - the sidebar's "Ausgewählt" tab is one click further
+ * away and loses the current cockpit layout. Built lazily and appended to
+ * <body> once, mirroring js/htbahRules.js's ensureHtbahRulesModal().
+ ********************************************************************************/
+function ensureNpcInfoModal() {
+    if (document.getElementById("npcInfoModalOverlay")) return;
+
+    const overlay = document.createElement("div");
+    overlay.id = "npcInfoModalOverlay";
+    overlay.className = "htbah-rules-overlay hidden";
+    overlay.innerHTML = `
+        <div class="htbah-rules-modal npc-info-modal" role="dialog" aria-modal="true" aria-labelledby="npcInfoModalTitle">
+            <div class="htbah-rules-head">
+                <h2 id="npcInfoModalTitle">NPC</h2>
+                <button type="button" class="htbah-rules-close" aria-label="Schließen">&times;</button>
+            </div>
+            <div class="htbah-rules-body">
+                <div class="htbah-rules-content" id="npcInfoModalContent"></div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector(".htbah-rules-close").addEventListener("click", closeNpcInfoModal);
+    overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) closeNpcInfoModal();
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !overlay.classList.contains("hidden")) closeNpcInfoModal();
+    });
+}
+
+function closeNpcInfoModal() {
+    document.getElementById("npcInfoModalOverlay")?.classList.add("hidden");
+}
+
+/**
+ * Fills and opens the NPC info popup for the given NPC.
+ */
+function openNpcInfoModal(npc) {
+    if (!npc) return;
+    ensureNpcInfoModal();
+
+    document.getElementById("npcInfoModalTitle").textContent = npc.name || "(Unbenannt)";
+
+    const content = document.getElementById("npcInfoModalContent");
+    content.innerHTML = "";
+
+    const head = document.createElement("div");
+    head.className = "character-detail-head";
+
+    const img = document.createElement("img");
+    img.className = "character-detail-portrait";
+    img.src = npc.image || "assets/default_npc.png";
+    img.alt = npc.name || "";
+    head.appendChild(img);
+
+    const headInfo = document.createElement("div");
+    headInfo.className = "character-detail-info";
+
+    const nameEl = document.createElement("h3");
+    nameEl.textContent = npc.name || "(Unbenannt)";
+    headInfo.appendChild(nameEl);
+
+    if (npc.profession) {
+        const professionLine = document.createElement("p");
+        professionLine.className = "character-meta-line";
+        professionLine.textContent = npc.profession;
+        headInfo.appendChild(professionLine);
+    }
+
+    const hpBits = [`${t("currhp")}${npc.currentHP ?? "?"} / ${npc.maxHP ?? "?"}`];
+    if (npc.maxMentalHP || npc.currentMentalHP) {
+        hpBits.push(`${t("currentmentalhp")}${npc.currentMentalHP ?? "?"} / ${npc.maxMentalHP ?? "?"}`);
+    }
+    const hpLine = document.createElement("p");
+    hpLine.className = "character-meta-line";
+    hpLine.textContent = hpBits.join(" · ");
+    headInfo.appendChild(hpLine);
+
+    head.appendChild(headInfo);
+    content.appendChild(head);
+
+    [["appearance", npc.appearance], ["description", npc.description]].forEach(([key, html]) => {
+        if (!html || !html.replace(/<[^>]*>/g, "").trim()) return;
+        const heading = document.createElement("h4");
+        heading.textContent = t(key);
+        content.appendChild(heading);
+        const body = document.createElement("div");
+        body.innerHTML = html;
+        content.appendChild(body);
+    });
+
+    const fullDetailsBtn = document.createElement("button");
+    fullDetailsBtn.type = "button";
+    fullDetailsBtn.className = "npc-info-modal-full-details";
+    fullDetailsBtn.textContent = t("cockpitNpcModalFullDetails");
+    fullDetailsBtn.addEventListener("click", () => {
+        closeNpcInfoModal();
+        displaySelectedDetails(npc);
+        document.querySelector('.tab-button[data-tab="tabSelected"]')?.click();
+    });
+    content.appendChild(fullDetailsBtn);
+
+    document.getElementById("npcInfoModalOverlay").classList.remove("hidden");
+}

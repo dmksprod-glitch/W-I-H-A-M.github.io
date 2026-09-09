@@ -2095,10 +2095,81 @@ button.active {
   margin-bottom: 4px;
 }
 
+/* Tabs switching the panel-head text between the normal description and
+   the second-visit note (only shown once the place has one) - both share
+   the single #cockpitNowPlaceDesc element below, swapped in cockpit.js. */
+.cockpit-now-desc-tabs {
+  display: flex;
+  gap: 16px;
+  margin: 6px 0 8px;
+}
+
+.cockpit-now-desc-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--ui-text-muted);
+  padding: 0 0 4px;
+  font-family: "Kanit", "Libre Franklin", system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.cockpit-now-desc-tab:hover {
+  color: var(--ui-text);
+}
+
+.cockpit-now-desc-tab.active {
+  color: var(--ui-gold);
+  border-bottom-color: var(--ui-gold);
+}
+
+/* Clamped to 3 lines by default - a long place description (or second-visit
+   note) used to push the map/NPCs/objects far down the card. The toggle
+   button (JS-managed, only shown when the text actually overflows) expands
+   it in place. */
 .cockpit-now-desc {
   color: var(--ui-text-muted);
   font-size: 0.86rem;
-  margin-bottom: 16px;
+  line-height: 1.45;
+  margin-bottom: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cockpit-now-desc.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.cockpit-now-desc-toggle {
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0 14px;
+  color: var(--ui-accent-strong);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* The button's own `display: inline-block` above would otherwise beat the
+   UA stylesheet's `[hidden] { display: none }` at equal specificity (this
+   rule simply comes later), keeping it visible even while JS sets
+   .hidden = true. */
+.cockpit-now-desc-toggle[hidden] {
+  display: none;
+}
+
+.cockpit-now-desc-toggle:hover {
+  text-decoration: underline;
 }
 
 .cockpit-now-sections {
@@ -2551,6 +2622,21 @@ button.active {
   color: #fff;
   border-color: var(--negativ-color);
   flex: none;
+}
+
+/* Cockpit "NPCs hier" cards open the NPC info popup on click. */
+.cockpit-npc-card {
+  cursor: pointer;
+}
+
+/* NPC info popup (Cockpit) - reuses .character-detail-head/.htbah-rules-content. */
+.npc-info-modal {
+  width: min(560px, 100%);
+}
+
+.npc-info-modal-full-details {
+  display: block;
+  margin: 18px auto 0;
 }
 
 .character-skills-grid {
