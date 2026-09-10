@@ -1,5 +1,5 @@
 // Defines the cache name, including a version string.
-const CACHE_NAME = "wiham-cache-v8";
+const CACHE_NAME = "wiham-cache-v9";
 
 // Lists the application files to be cached for offline availability.
 const urlsToCache = [
@@ -28,6 +28,7 @@ const urlsToCache = [
     "/js/audio.js",
     "/js/db.js",
     "/js/htbahRules.js",
+    "/js/diceRoller.js",
     "/assets/logo.png",
     "/assets/favicon.ico",
     "/assets/default_place.png",

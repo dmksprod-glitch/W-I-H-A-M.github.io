@@ -158,6 +158,35 @@
         <span class="mdi mdi-book-open-page-variant-outline"></span>
         <span data-i18n="rulesHelp">Regeln</span>
       </button>
+      <div id="headerDiceRoller">
+        <button type="button" class="rules-help-btn" id="headerDiceToggle" title="Probe würfeln (W100)">
+          <span class="mdi mdi-dice-multiple-outline"></span>
+          <span data-i18n="diceRollerToggle">Würfeln</span>
+        </button>
+        <div id="headerDicePanel" class="header-dice-panel hidden">
+          <div class="header-dice-panel-head">
+            <span data-i18n="diceRollerTitle">W100 würfeln</span>
+            <button type="button" class="cockpit-icon-btn" id="btnCloseDicePanel" aria-label="Schließen">
+              <span class="mdi mdi-close"></span>
+            </button>
+          </div>
+          <div class="dice-roller-dice-row">
+            <div class="dice-die" id="diceTens">
+              <span class="dice-die-value">00</span>
+              <span class="dice-die-label" data-i18n="diceTensLabel">Zehner</span>
+            </div>
+            <div class="dice-die-plus">+</div>
+            <div class="dice-die" id="diceOnes">
+              <span class="dice-die-value">0</span>
+              <span class="dice-die-label" data-i18n="diceOnesLabel">Einer</span>
+            </div>
+          </div>
+          <div class="dice-roller-result">
+            <span id="diceResultValue">&ndash;</span>
+          </div>
+          <button type="button" class="dice-roll-btn" id="btnRollDice" data-i18n="diceRollButton">Würfeln</button>
+        </div>
+      </div>
       <button type="button" class="cockpit-icon-btn" id="btnToggleInfoSidebar" title="Rechte Spalte ein-/ausblenden">
         <span class="mdi mdi-page-layout-sidebar-right"></span>
       </button>
@@ -871,6 +900,7 @@
   <script src="js/main.js"></script>
   <script src="js/db.js"></script>
   <script src="js/htbahRules.js"></script>
+  <script src="js/diceRoller.js"></script>
 </body>
 
 </html>

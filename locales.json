@@ -174,7 +174,12 @@
     "itemLinkTypeLabel": "Typ:",
     "itemLinkItemLabel": "Item:",
     "insert": "Einfügen",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "diceRollerToggle": "Würfeln",
+    "diceRollerTitle": "W100 würfeln",
+    "diceTensLabel": "Zehner",
+    "diceOnesLabel": "Einer",
+    "diceRollButton": "Würfeln"
   },
   "ru": {
     "languageTitel": "Русский",
@@ -351,7 +356,12 @@
     "itemLinkTypeLabel": "Тип:",
     "itemLinkItemLabel": "Элемент:",
     "insert": "Вставить",
-    "cancel": "Отмена"
+    "cancel": "Отмена",
+    "diceRollerToggle": "Бросить кости",
+    "diceRollerTitle": "Бросок W100",
+    "diceTensLabel": "Десятки",
+    "diceOnesLabel": "Единицы",
+    "diceRollButton": "Бросить"
   },
   "en": {
     "languageTitel": "English",
@@ -528,6 +538,11 @@
     "itemLinkTypeLabel": "Type:",
     "itemLinkItemLabel": "Item:",
     "insert": "Insert",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "diceRollerToggle": "Roll dice",
+    "diceRollerTitle": "Roll W100",
+    "diceTensLabel": "Tens",
+    "diceOnesLabel": "Ones",
+    "diceRollButton": "Roll"
   }
 }
