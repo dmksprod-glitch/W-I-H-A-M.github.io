@@ -335,6 +335,14 @@ async function initScenarioFromDB() {
         console.error("Could not load autosaved scenario:", error);
     }
 
+    // Wait for translations so the initial render never bakes a raw i18n
+    // key (e.g. "cockpitDescShowMore") into text that data-i18n's later
+    // updateTexts() pass won't revisit - this restore can otherwise finish
+    // before js/locales.js's locales.json fetch does.
+    if (typeof languagesReady !== "undefined") {
+        await languagesReady;
+    }
+
     refreshAllScenarioUI();
     lastSavedAt = new Date();
     renderDbStatus();

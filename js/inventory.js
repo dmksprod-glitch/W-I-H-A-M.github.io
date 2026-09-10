@@ -17,6 +17,7 @@ function renderdivInventoryListRight() {
     // Add a heading for the inventory section
     const inventoryTitle = document.createElement("h2");
     inventoryTitle.dataset.i18n = "inventory";
+    inventoryTitle.textContent = t("inventory");
     inventorySection.appendChild(inventoryTitle);
 
     // Create a container for listing the items
@@ -36,5 +37,6 @@ function renderdivInventoryListRight() {
     });
 
     // Append the container with all items into the main inventory section
-    divInventoryListRight.appendChild(inventoryContainer);
+    inventorySection.appendChild(inventoryContainer);
+    divInventoryListRight.appendChild(inventorySection);
 }

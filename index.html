@@ -24,27 +24,27 @@
 
   <div id="itemLinkModal" class="modal hidden">
     <div class="modal-content">
-      <h3>Link einfügen</h3>
+      <h3 data-i18n="itemLinkTitle">Link einfügen</h3>
 
       <!-- Dropdown #1: Typ auswählen (npc, object, place, event) -->
-      <label for="selectItemType">Typ:</label>
+      <label for="selectItemType" data-i18n="itemLinkTypeLabel">Typ:</label>
       <select id="selectItemType">
-        <option value="npc">NPC</option>
-        <option value="object">Object</option>
-        <option value="place">Place</option>
-        <option value="event">Event</option>
+        <option value="npc" data-i18n="npc">NPC</option>
+        <option value="object" data-i18n="object">Object</option>
+        <option value="place" data-i18n="place">Place</option>
+        <option value="event" data-i18n="event">Event</option>
       </select>
 
       <!-- Dropdown #2: Konkretes Item auswählen -->
-      <label for="selectItemId">Item:</label>
+      <label for="selectItemId" data-i18n="itemLinkItemLabel">Item:</label>
       <select id="selectItemId">
         <!-- Wird dynamisch befüllt -->
       </select>
 
       <!-- Button zum Einfügen -->
       <div style="margin-top: 10px;">
-        <button id="btnInsertLink">Einfügen</button>
-        <button id="btnCloseModal">Abbrechen</button>
+        <button id="btnInsertLink" data-i18n="insert">Einfügen</button>
+        <button id="btnCloseModal" data-i18n="cancel">Abbrechen</button>
       </div>
     </div>
   </div>

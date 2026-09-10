@@ -139,7 +139,7 @@ function addCondition(previousOperator = null, insertAfterElement = null) {
 
     if (previousOperator === "or") {
         const orLabel = document.createElement("span");
-        orLabel.textContent = "OR";
+        orLabel.textContent = t("or");
         orLabel.style.marginRight = "10px";
         orLabel.style.fontWeight = "bold";
         conditionItem.appendChild(orLabel);
@@ -149,7 +149,7 @@ function addCondition(previousOperator = null, insertAfterElement = null) {
     ["npc", "time", "object", "place"].forEach(type => {
         const option = document.createElement("option");
         option.value = type;
-        option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+        option.textContent = t(type);
         conditionType.appendChild(option);
     });
 
@@ -167,11 +167,11 @@ function addCondition(previousOperator = null, insertAfterElement = null) {
     updateConditionValueDropdown(conditionValue, conditionType.value);
 
     const btnAnd = document.createElement("button");
-    btnAnd.textContent = "AND";
+    btnAnd.textContent = t("and");
     btnAnd.addEventListener("click", () => addCondition(null, conditionItem));
 
     const btnOr = document.createElement("button");
-    btnOr.textContent = "OR";
+    btnOr.textContent = t("or");
     btnOr.addEventListener("click", () => addCondition("or", conditionItem));
 
     const btnRemove = document.createElement("button");

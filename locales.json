@@ -164,7 +164,17 @@
     "charactersHandoffImport": "Übernehmen",
     "charactersHandoffOne": "Ein Charakter aus dem Charakter-Creator wartet auf Import.",
     "charactersHandoffMany": "Charaktere aus dem Charakter-Creator warten auf Import.",
-    "charactersOpenAll": "Alle ansehen"
+    "charactersOpenAll": "Alle ansehen",
+    "object": "Objekt",
+    "event": "Ereignis",
+    "time": "Zeit",
+    "and": "UND",
+    "or": "ODER",
+    "itemLinkTitle": "Link einfügen",
+    "itemLinkTypeLabel": "Typ:",
+    "itemLinkItemLabel": "Item:",
+    "insert": "Einfügen",
+    "cancel": "Abbrechen"
   },
   "ru": {
     "languageTitel": "Русский",
@@ -331,7 +341,17 @@
     "charactersHandoffImport": "Принять",
     "charactersHandoffOne": "Один персонаж из конструктора ждёт импорта.",
     "charactersHandoffMany": "персонажей из конструктора ждут импорта.",
-    "charactersOpenAll": "Смотреть всех"
+    "charactersOpenAll": "Смотреть всех",
+    "object": "Объект",
+    "event": "Событие",
+    "time": "Время",
+    "and": "И",
+    "or": "ИЛИ",
+    "itemLinkTitle": "Вставить ссылку",
+    "itemLinkTypeLabel": "Тип:",
+    "itemLinkItemLabel": "Элемент:",
+    "insert": "Вставить",
+    "cancel": "Отмена"
   },
   "en": {
     "languageTitel": "English",
@@ -498,6 +518,16 @@
     "charactersHandoffImport": "Import",
     "charactersHandoffOne": "One character from the Character Creator is ready to import.",
     "charactersHandoffMany": "characters from the Character Creator are ready to import.",
-    "charactersOpenAll": "View all"
+    "charactersOpenAll": "View all",
+    "object": "Object",
+    "event": "Event",
+    "time": "Time",
+    "and": "AND",
+    "or": "OR",
+    "itemLinkTitle": "Insert Link",
+    "itemLinkTypeLabel": "Type:",
+    "itemLinkItemLabel": "Item:",
+    "insert": "Insert",
+    "cancel": "Cancel"
   }
 }

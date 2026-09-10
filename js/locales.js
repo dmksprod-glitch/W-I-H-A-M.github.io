@@ -14,6 +14,17 @@ let currentLanguage = 'de';
 let translations = {};
 
 /**
+ * Resolves once translations have been loaded (successfully or not) for the
+ * first time. Code that builds user-facing text via t() before the page's
+ * data-i18n elements exist - e.g. the cockpit's initial render off an
+ * autosaved scenario, which can otherwise win the race against the
+ * locales.json fetch - should await this so it never bakes a raw
+ * translation key into text that won't get refreshed later.
+ */
+let resolveLanguagesReady;
+const languagesReady = new Promise(resolve => { resolveLanguagesReady = resolve; });
+
+/**
  * Loads available languages from the 'locales.json' file,
  * sets the default language based on the browser's preference or fallback,
  * populates the language dropdown, and attaches a listener for language changes.
@@ -43,6 +54,8 @@ async function loadLanguages() {
         });
     } catch (error) {
         console.error("Error loading language data:", error);
+    } finally {
+        resolveLanguagesReady();
     }
 }
 
@@ -118,8 +131,11 @@ function getBrowserLanguage() {
 }
 
 /**
- * Initializes language loading after DOM is ready.
+ * Kicks off language loading right away rather than waiting for
+ * DOMContentLoaded - this script tag sits after all the elements it touches
+ * (#languageSelector etc.) in the document, so they already exist, and
+ * starting the locales.json fetch this early gives it a head start over
+ * js/db.js's autosave restore later in the load order (see
+ * languagesReady above).
  */
-document.addEventListener('DOMContentLoaded', () => {
-    loadLanguages();
-});
+loadLanguages();

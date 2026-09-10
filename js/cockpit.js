@@ -780,6 +780,47 @@ function closeNpcInfoModal() {
 }
 
 /**
+ * Builds a labelled health bar (e.g. "HP  100 / 100") with a fill that
+ * shifts from green to gold to red as the current value drops, for the
+ * NPC info popup's HP and Mental HP rows.
+ */
+function buildNpcHpBar(label, current, max) {
+    const safeMax = Math.max(Number(max) || 0, 0);
+    const safeCurrent = Math.max(Number(current) || 0, 0);
+    const pct = safeMax > 0 ? Math.min(100, Math.round((safeCurrent / safeMax) * 100)) : 0;
+
+    const wrap = document.createElement("div");
+    wrap.className = "npc-hp-bar";
+
+    const row = document.createElement("div");
+    row.className = "npc-hp-bar-row";
+
+    const labelEl = document.createElement("span");
+    labelEl.className = "npc-hp-bar-label";
+    labelEl.textContent = label.replace(/:\s*$/, "");
+    row.appendChild(labelEl);
+
+    const valueEl = document.createElement("span");
+    valueEl.className = "npc-hp-bar-value";
+    valueEl.textContent = `${current ?? "?"} / ${max ?? "?"}`;
+    row.appendChild(valueEl);
+
+    const track = document.createElement("div");
+    track.className = "npc-hp-bar-track";
+
+    const fill = document.createElement("div");
+    fill.className = "npc-hp-bar-fill";
+    if (pct <= 25) fill.classList.add("npc-hp-bar-fill-low");
+    else if (pct <= 50) fill.classList.add("npc-hp-bar-fill-mid");
+    fill.style.width = `${pct}%`;
+    track.appendChild(fill);
+
+    wrap.appendChild(row);
+    wrap.appendChild(track);
+    return wrap;
+}
+
+/**
  * Fills and opens the NPC info popup for the given NPC.
  */
 function openNpcInfoModal(npc) {
@@ -814,14 +855,13 @@ function openNpcInfoModal(npc) {
         headInfo.appendChild(professionLine);
     }
 
-    const hpBits = [`${t("currhp")}${npc.currentHP ?? "?"} / ${npc.maxHP ?? "?"}`];
+    const hpSection = document.createElement("div");
+    hpSection.className = "npc-hp-section";
+    hpSection.appendChild(buildNpcHpBar(t("currhp"), npc.currentHP, npc.maxHP));
     if (npc.maxMentalHP || npc.currentMentalHP) {
-        hpBits.push(`${t("currentmentalhp")}${npc.currentMentalHP ?? "?"} / ${npc.maxMentalHP ?? "?"}`);
+        hpSection.appendChild(buildNpcHpBar(t("currentmentalhp"), npc.currentMentalHP, npc.maxMentalHP));
     }
-    const hpLine = document.createElement("p");
-    hpLine.className = "character-meta-line";
-    hpLine.textContent = hpBits.join(" · ");
-    headInfo.appendChild(hpLine);
+    headInfo.appendChild(hpSection);
 
     head.appendChild(headInfo);
     content.appendChild(head);
